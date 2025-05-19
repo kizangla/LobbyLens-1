@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --primary: 235 47.8% 47.8%; /* #3f51b5 */
+    --primary-foreground: 211 100% 99%;
+    --secondary: 339 90.6% 51%; /* #f50057 */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --ring: 20 14.3% 4.1%;
+    --radius: 0.5rem;
+    
+    /* Category Colors */
+    --hotel-guide: 24 80% 81.8%; /* #f5c6aa */
+    --city-guide: 135 80% 81.8%; /* #c6f5d6 */
+    --beach-guide: 300 80% 81.8%; /* #f5c6f5 */
+    --nature-guide: 205 80% 81.8%; /* #c6e2f5 */
+    --fb-guide: 40 80% 81.8%; /* #f5e2c6 */
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --primary: 235 47.8% 47.8%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 339 90.6% 51%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 240 4.9% 83.9%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    touch-action: manipulation;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Category background colors */
+  .bg-hotel-guide {
+    background-color: hsl(var(--hotel-guide));
+  }
+  .bg-city-guide {
+    background-color: hsl(var(--city-guide));
+  }
+  .bg-beach-guide {
+    background-color: hsl(var(--beach-guide));
+  }
+  .bg-nature-guide {
+    background-color: hsl(var(--nature-guide));
+  }
+  .bg-fb-guide {
+    background-color: hsl(var(--fb-guide));
+  }
+
+  /* Category border colors */
+  .border-hotel-guide {
+    border-color: hsl(var(--hotel-guide));
+  }
+  .border-city-guide {
+    border-color: hsl(var(--city-guide));
+  }
+  .border-beach-guide {
+    border-color: hsl(var(--beach-guide));
+  }
+  .border-nature-guide {
+    border-color: hsl(var(--nature-guide));
+  }
+  .border-fb-guide {
+    border-color: hsl(var(--fb-guide));
+  }
+
+  /* Category text colors */
+  .text-hotel-guide {
+    color: hsl(24, 50%, 60%);
+  }
+  .text-city-guide {
+    color: hsl(135, 50%, 60%);
+  }
+  .text-beach-guide {
+    color: hsl(300, 50%, 60%);
+  }
+  .text-nature-guide {
+    color: hsl(205, 50%, 60%);
+  }
+  .text-fb-guide {
+    color: hsl(40, 50%, 60%);
+  }
+
+  /* Card transitions */
+  .card-transition {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .card-transition:hover {
+    transform: scale(1.03);
+  }
+
+  /* Guide content modal */
+  .guide-content {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
