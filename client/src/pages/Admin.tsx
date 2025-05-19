@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -408,6 +408,23 @@ function GuidesManager() {
     queryKey: ['/api/guides'],
   });
   
+  // Fetch all subcategories
+  const { data: subcategories = [], isLoading: subcategoriesLoading } = useQuery<Subcategory[]>({
+    queryKey: ['/api/subcategories'],
+  });
+  
+  // Organize subcategories by categoryId for easier selection
+  const subcategoriesByCategory = useMemo(() => {
+    const result: Record<string, Subcategory[]> = {};
+    subcategories.forEach(subcategory => {
+      if (!result[subcategory.categoryId]) {
+        result[subcategory.categoryId] = [];
+      }
+      result[subcategory.categoryId].push(subcategory);
+    });
+    return result;
+  }, [subcategories]);
+  
   // Create guide mutation
   const createGuide = useMutation({
     mutationFn: async (guide: InsertGuide) => {
@@ -620,6 +637,33 @@ function GuidesManager() {
                     ))}
                   </select>
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="subcategoryId" className="text-sm font-medium">Subcategory</label>
+                <select 
+                  id="subcategoryId" 
+                  name="subcategoryId" 
+                  value={formData.subcategoryId || ''}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  disabled={!formData.categoryId}
+                >
+                  <option value="">Select a subcategory</option>
+                  {formData.categoryId && (
+                    <>
+                      {/* Using hardcoded subcategories from our application */}
+                      {subcategoriesByCategory[formData.categoryId]?.map(subcategory => (
+                        <option key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+                {!formData.categoryId && (
+                  <p className="text-xs text-muted-foreground mt-1">Please select a category first</p>
+                )}
               </div>
               
               <div className="grid grid-cols-2 gap-4">
