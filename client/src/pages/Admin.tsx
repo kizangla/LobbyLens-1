@@ -417,12 +417,14 @@ function GuidesManager() {
   // Organize subcategories by categoryId for easier selection
   const subcategoriesByCategory = useMemo(() => {
     const result: Record<string, Subcategory[]> = {};
-    subcategories.forEach(subcategory => {
+    
+    subcategories.forEach((subcategory) => {
       if (!result[subcategory.categoryId]) {
         result[subcategory.categoryId] = [];
       }
       result[subcategory.categoryId].push(subcategory);
     });
+    
     return result;
   }, [subcategories]);
   

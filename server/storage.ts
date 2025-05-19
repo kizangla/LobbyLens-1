@@ -93,6 +93,49 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
   
+  // Subcategory methods
+  async getAllSubcategories(): Promise<Subcategory[]> {
+    return await db.select().from(subcategories).orderBy(asc(subcategories.order));
+  }
+  
+  async getSubcategoriesByCategoryId(categoryId: string): Promise<Subcategory[]> {
+    return await db
+      .select()
+      .from(subcategories)
+      .where(eq(subcategories.categoryId, categoryId))
+      .orderBy(asc(subcategories.order));
+  }
+  
+  async getSubcategoryById(id: string): Promise<Subcategory | undefined> {
+    const [subcategory] = await db.select().from(subcategories).where(eq(subcategories.id, id));
+    return subcategory;
+  }
+  
+  async createSubcategory(subcategory: InsertSubcategory): Promise<Subcategory> {
+    const [newSubcategory] = await db.insert(subcategories).values(subcategory).returning();
+    return newSubcategory;
+  }
+  
+  async updateSubcategory(id: string, subcategory: InsertSubcategory): Promise<Subcategory | undefined> {
+    const [updatedSubcategory] = await db
+      .update(subcategories)
+      .set(subcategory)
+      .where(eq(subcategories.id, id))
+      .returning();
+    return updatedSubcategory;
+  }
+  
+  async deleteSubcategory(id: string): Promise<boolean> {
+    // First update any guides that use this subcategory
+    await db
+      .update(guides)
+      .set({ subcategoryId: null })
+      .where(eq(guides.subcategoryId, id));
+      
+    const result = await db.delete(subcategories).where(eq(subcategories.id, id)).returning();
+    return result.length > 0;
+  }
+  
   async getGuideById(id: string): Promise<Guide | undefined> {
     const [guide] = await db.select().from(guides).where(eq(guides.id, id));
     return guide;
@@ -103,6 +146,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(guides)
       .where(eq(guides.categoryId, categoryId))
+      .orderBy(asc(guides.order));
+  }
+  
+  async getGuidesBySubcategoryId(subcategoryId: string): Promise<Guide[]> {
+    return await db
+      .select()
+      .from(guides)
+      .where(eq(guides.subcategoryId, subcategoryId))
       .orderBy(asc(guides.order));
   }
   
@@ -136,6 +187,7 @@ export class DatabaseStorage implements IStorage {
         excerpt: guides.excerpt,
         content: guides.content,
         categoryId: guides.categoryId,
+        subcategoryId: guides.subcategoryId,
         order: guides.order,
         categoryName: categories.name
       })
