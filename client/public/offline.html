@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oceanview Resort Guide - Offline Mode</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 600px;
+      background-color: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #1e40af;
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      color: #555;
+    }
+    
+    .icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      color: #1e40af;
+    }
+    
+    .button {
+      display: inline-block;
+      background-color: #1e40af;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      cursor: pointer;
+    }
+    
+    .button:hover {
+      background-color: #1e3a8a;
+    }
+    
+    .cached-info {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📶</div>
+    <h1>You're Currently Offline</h1>
+    <p>The Oceanview Resort Guide is currently in offline mode. Some content may be limited until your connection is restored.</p>
+    <p>You can still browse through any previously visited sections that have been cached.</p>
+    
+    <button class="button" onclick="window.location.reload()">Try Again</button>
+    
+    <div class="cached-info">
+      <h2>About Offline Mode</h2>
+      <p>The Resort Guide app uses advanced caching to keep information available even when you're offline. Any pages you've previously visited should still be accessible.</p>
+    </div>
+  </div>
+
+  <script>
+    // Check connection status periodically
+    setInterval(() => {
+      if (navigator.onLine) {
+        document.querySelector('.icon').textContent = '✅';
+        document.querySelector('h1').textContent = 'You\'re Back Online!';
+        document.querySelector('p').textContent = 'Reconnected to the network. Click the button below to reload the app with full functionality.';
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

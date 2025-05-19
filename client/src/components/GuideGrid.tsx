@@ -1,5 +1,6 @@
 import { Category, Guide } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from '@/lib/i18n';
 
 interface GuideGridProps {
   category: Category;
@@ -8,10 +9,12 @@ interface GuideGridProps {
 }
 
 export default function GuideGrid({ category, guides, onSelectGuide }: GuideGridProps) {
+  const { t } = useTranslation();
+  
   if (!guides.length) {
     return (
       <div className="text-center py-10">
-        <h3 className="text-xl font-medium mb-2">No guides available</h3>
+        <h3 className="text-xl font-medium mb-2">{t('guides.empty')}</h3>
         <p className="text-muted-foreground">Please check back later for content updates.</p>
       </div>
     );
