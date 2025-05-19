@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import ContentEditor from '@/components/ContentEditor';
 import {
   Table,
   TableBody,
@@ -656,15 +657,22 @@ function GuidesManager() {
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="content" className="text-sm font-medium">Content (HTML)</label>
-                <Textarea 
-                  id="content" 
-                  name="content" 
-                  value={formData.content} 
-                  onChange={handleInputChange}
-                  placeholder="<p>Full HTML content of the guide...</p>"
-                  rows={8}
-                />
+                <label htmlFor="content" className="text-sm font-medium">Content</label>
+                <div className="border rounded-md">
+                  <ContentEditor
+                    initialContent={formData.content}
+                    onChange={(content) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        content
+                      }));
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Design your guide with multiple content sections. The left column will display as a carousel, 
+                  and the right column will show a menu and QR code.
+                </p>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
