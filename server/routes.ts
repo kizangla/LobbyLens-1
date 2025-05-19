@@ -61,6 +61,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Create a new subcategory
+  app.post("/api/subcategories", async (req, res) => {
+    try {
+      const validatedData = insertSubcategorySchema.parse(req.body);
+      const newSubcategory = await storage.createSubcategory(validatedData);
+      res.status(201).json(newSubcategory);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error creating subcategory:", error);
+      res.status(500).json({ message: "Failed to create subcategory" });
+    }
+  });
+  
+  // Update a subcategory
+  app.put("/api/subcategories/:id", async (req, res) => {
+    try {
+      const validatedData = insertSubcategorySchema.parse(req.body);
+      const updatedSubcategory = await storage.updateSubcategory(req.params.id, validatedData);
+      if (!updatedSubcategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      res.json(updatedSubcategory);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error updating subcategory:", error);
+      res.status(500).json({ message: "Failed to update subcategory" });
+    }
+  });
+  
+  // Delete a subcategory
+  app.delete("/api/subcategories/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteSubcategory(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting subcategory:", error);
+      res.status(500).json({ message: "Failed to delete subcategory" });
+    }
+  });
+  
   // Get subcategories for a specific category
   app.get("/api/categories/:id/subcategories", async (req, res) => {
     try {
