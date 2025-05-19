@@ -7,6 +7,7 @@ import SearchResults from '@/components/SearchResults';
 import GuideModal from '@/components/GuideModal';
 import useGuideNavigation from '@/hooks/useGuideNavigation';
 import useSearch from '@/hooks/useSearch';
+import { useTranslation } from '@/lib/i18n';
 import { SearchResult } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 

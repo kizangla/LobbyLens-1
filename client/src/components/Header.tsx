@@ -7,8 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Search, ArrowLeft, SunIcon } from 'lucide-react';
+import { ChevronDown, Search, ArrowLeft, SunIcon, CloudRainIcon, CloudIcon, CloudLightningIcon } from 'lucide-react';
 import { useAppContext } from '@/App';
+import { useWeather } from '@/lib/weatherService';
+import { useTranslation } from '@/lib/i18n';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface HeaderProps {
   onBackClick?: () => void;
@@ -20,6 +23,8 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
   const [time, setTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const { language, setLanguage } = useAppContext();
+  const weather = useWeather();
+  const { t } = useTranslation();
   
   // Clock updater
   useEffect(() => {
@@ -32,8 +37,11 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
     };
   }, []);
   
-  // Format time as HH:MM
-  const formattedTime = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Format time as HH:MM based on current language
+  const formattedTime = time.toLocaleTimeString(language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
   
   // Handle search input
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +50,30 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
     
     if (onSearch && query.length >= 2) {
       onSearch(query);
+    }
+  };
+  
+  // Get weather icon based on OpenWeatherMap icon code
+  const getWeatherIcon = (iconCode: string) => {
+    if (!iconCode) return <SunIcon className="h-5 w-5" />;
+    
+    // First two characters determine the weather condition
+    const condition = iconCode.substring(0, 2);
+    
+    switch (condition) {
+      case '01': // Clear sky
+        return <SunIcon className="h-5 w-5" />;
+      case '02': // Few clouds
+      case '03': // Scattered clouds
+      case '04': // Broken clouds
+        return <CloudIcon className="h-5 w-5" />;
+      case '09': // Shower rain
+      case '10': // Rain
+        return <CloudRainIcon className="h-5 w-5" />;
+      case '11': // Thunderstorm
+        return <CloudLightningIcon className="h-5 w-5" />;
+      default:
+        return <SunIcon className="h-5 w-5" />;
     }
   };
 
@@ -57,7 +89,7 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
             onClick={onBackClick}
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
-            <span>Back</span>
+            <span>{t('back')}</span>
           </Button>
         )}
       </div>
@@ -67,7 +99,7 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
         <div className="relative">
           <Input
             type="text"
-            placeholder="Search guides..."
+            placeholder={t('search')}
             className="w-64 rounded-full bg-white/20 focus:bg-white/30 border-none text-white placeholder:text-white/70"
             value={searchQuery}
             onChange={handleSearchInput}
@@ -76,9 +108,20 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
         </div>
         
         {/* Weather widget */}
-        <div className="flex items-center">
-          <SunIcon className="h-5 w-5 mr-1" />
-          <span>28°C</span>
+        <div className="flex items-center gap-1 min-w-[70px]">
+          {weather.loading ? (
+            <Skeleton className="h-8 w-16 bg-white/20" />
+          ) : weather.error ? (
+            <div className="flex items-center">
+              <SunIcon className="h-5 w-5 mr-1" />
+              <span>--°C</span>
+            </div>
+          ) : (
+            <>
+              {getWeatherIcon(weather.icon)}
+              <span className="ml-1">{weather.temperature}°C</span>
+            </>
+          )}
         </div>
         
         {/* Clock */}

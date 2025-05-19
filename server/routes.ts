@@ -192,6 +192,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete guide" });
     }
   });
+  
+  // Weather API endpoint
+  app.get("/api/weather", async (req, res) => {
+    try {
+      const lat = req.query.lat || "-31.9523"; // Default to Perth, Australia
+      const lon = req.query.lon || "115.8613";
+      const apiKey = process.env.OPENWEATHER_API_KEY;
+      
+      if (!apiKey) {
+        return res.status(500).json({ message: "Weather API key not configured" });
+      }
+      
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Weather API responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+      res.status(500).json({ message: "Failed to fetch weather data" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
