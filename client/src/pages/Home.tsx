@@ -5,18 +5,23 @@ import CategoryGrid from '@/components/CategoryGrid';
 import GuideGrid from '@/components/GuideGrid';
 import SearchResults from '@/components/SearchResults';
 import GuideModal from '@/components/GuideModal';
-import useGuideNavigation from '@/hooks/useGuideNavigation';
+import SubcategoryGrid from '@/components/SubcategoryGrid';
+import SubcategoryView from '@/components/SubcategoryView';
+import useSubcategoryNavigation from '@/hooks/useSubcategoryNavigation';
 import useSearch from '@/hooks/useSearch';
 import { useTranslation } from '@/lib/i18n';
 import { SearchResult } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
+  const { t } = useTranslation();
+  
   // Navigation state and handlers
   const {
     currentView,
     setCurrentView,
     selectedCategory,
+    selectedSubcategoryId,
     selectedGuide,
     isModalOpen,
     setIsModalOpen,
@@ -26,8 +31,9 @@ export default function Home() {
     guidesLoading,
     goToHome,
     selectCategory,
+    selectSubcategory,
     selectGuide
-  } = useGuideNavigation();
+  } = useSubcategoryNavigation();
   
   // Search state and handlers
   const {
@@ -51,6 +57,20 @@ export default function Home() {
   // Compute show back button
   const showBackButton = currentView !== 'home';
   
+  // Handle back button click based on current view
+  const handleBackClick = () => {
+    if (currentView === 'subcategory') {
+      // Go back to category view
+      setCurrentView('category');
+    } else if (currentView === 'category') {
+      // Go back to home
+      goToHome();
+    } else if (currentView === 'search') {
+      // Go back to previous view or home
+      goToHome();
+    }
+  };
+  
   // Handle search with view change
   const handleSearchWithView = (query: string) => {
     handleSearch(query);
@@ -64,7 +84,7 @@ export default function Home() {
   return (
     <div className="app-container">
       <Header 
-        onBackClick={goToHome} 
+        onBackClick={handleBackClick} 
         showBackButton={showBackButton}
         onSearch={handleSearchWithView}
       />
@@ -91,17 +111,33 @@ export default function Home() {
           )
         )}
         
-        {/* Category view - Guides Grid */}
+        {/* Category view - Subcategories Grid */}
         {currentView === 'category' && selectedCategory && (
           guidesLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
           ) : (
-            <GuideGrid 
+            <SubcategoryGrid 
               category={selectedCategory} 
-              guides={guides} 
-              onSelectGuide={selectGuide} 
+              onSelectSubcategory={selectSubcategory} 
+            />
+          )
+        )}
+        
+        {/* Subcategory view - Guides in that subcategory */}
+        {currentView === 'subcategory' && selectedCategory && selectedSubcategoryId && (
+          guidesLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+          ) : (
+            <SubcategoryView 
+              category={selectedCategory}
+              subcategoryId={selectedSubcategoryId}
+              guides={guides}
+              onSelectGuide={selectGuide}
+              isLoading={guidesLoading}
             />
           )
         )}
