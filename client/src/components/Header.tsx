@@ -81,7 +81,7 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
   return (
     <header className="bg-primary text-white p-4 shadow-md flex justify-between items-center">
       <div className="flex items-center space-x-4">
-        <h1 className="text-3xl font-poppins font-semibold">Oceanview Resort</h1>
+        <h1 className="text-3xl font-bold">Oceanview Resort</h1>
         
         {showBackButton && (
           <Button 
