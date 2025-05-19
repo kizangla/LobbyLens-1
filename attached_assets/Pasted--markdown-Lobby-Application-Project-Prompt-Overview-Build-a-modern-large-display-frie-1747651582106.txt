@@ -1,0 +1,140 @@
+```markdown
+# Lobby Application Project Prompt
+
+## Overview
+
+Build a modern, large-display-friendly lobby application based on the attached site plan images. The application should allow users to navigate curated categories (such as Hotel Guide, City Guide, Beach Guide, etc.), each with their own sub-guides. The backend should provide a WYSIWYG CMS for easy content management. The app must support running out-of-browser (as a PWA or Electron app).
+
+---
+
+## Requirements
+
+### Frontend
+
+- **Framework:** React (with Material UI or Chakra UI)
+- **Display:** Optimized for large screens and touch interaction
+- **Navigation:** Grid layout for categories and sub-guides (see attached images)
+- **Design:** Card-based, color-coded categories
+- **Transitions:** Smooth, modern animations
+- **Accessibility:** High-contrast, large buttons, readable fonts
+- **Search/Filter:** Allow quick search/filtering of guides
+- **Multi-language:** Easily extensible for future localization
+- **Offline Support:** PWA installable and functional offline
+
+### Backend/CMS
+
+- **Headless CMS:** Strapi or Sanity.io
+- **WYSIWYG Editor:** For editing guide content (rich text, images, etc.)
+- **CRUD:** Full management of categories and guides
+- **Media Uploads:** Support for images and files
+- **User Roles:** Admin/editor access controls
+- **API:** REST or GraphQL for frontend integration
+
+### Database
+
+- **Type:** MongoDB or PostgreSQL
+- **Seed Data:** Populate with categories and guides as per the attached site plan
+
+### Out-of-Browser Support
+
+- **PWA:** Must be installable and run offline
+- **Electron (optional):** For kiosk mode deployment
+
+---
+
+## Design Inspiration
+
+- [Apple TV UI](https://www.apple.com/tv-app/): Large, card-based navigation
+- [Google Material Design](https://material.io/components): Clean, accessible, responsive
+- [Airbnb Admin Dashboard](https://dribbble.com/shots/15523193-Airbnb-Admin-Dashboard): WYSIWYG backend inspiration
+
+---
+
+## Sample Database Schema
+
+```
+{
+  "categories": [
+    {
+      "id": "hotel-guide",
+      "name": "Hotel Guide",
+      "color": "#f5c6aa",
+      "guides": [
+        { "id": "reception-hours", "title": "Reception Hours", "content": "Reception is open 24/7..." },
+        { "id": "tv-channels", "title": "TV Channels", "content": "Available channels are..." }
+        // ...other hotel guides (see attached image)
+      ]
+    },
+    {
+      "id": "city-guide",
+      "name": "City Guide",
+      "color": "#c6f5d6",
+      "guides": [
+        { "id": "getting-around", "title": "Getting Around", "content": "Public transport info..." }
+        // ...other city guides (see attached image)
+      ]
+    },
+    {
+      "id": "beach-guide",
+      "name": "Beach Guide",
+      "color": "#f5c6f5",
+      "guides": [
+        { "id": "yanchep-beach", "title": "Yanchep Beach", "content": "Info about Yanchep Beach..." }
+        // ...other beach guides (see attached image)
+      ]
+    }
+    // ...other categories (Nature Guide, F&B Guide, etc.)
+  ]
+}
+```
+
+---
+
+## Deliverables
+
+- Frontend React app (with PWA support)
+- Backend CMS (Strapi/Sanity)
+- Sample database with categories and guides (see attached images)
+- Instructions to run locally and as a PWA/Electron app
+
+---
+
+## Steps
+
+1. **Prototype UI:** Use Figma/Adobe XD to mock up main screens (optional).
+2. **Set Up CMS:** Deploy Strapi or Sanity, define schemas, seed data.
+3. **Build Frontend:** Scaffold React app, consume CMS API, implement navigation.
+4. **PWA/Electron:** Add service worker (PWA) or Electron wrapper for kiosk mode.
+5. **Test & Deploy:** Ensure touch-friendliness, accessibility, and offline support.
+
+---
+
+## Reference Images
+
+- ![Home Page](https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/7aa6855a-b123-42c2-a453-5d060812f380/1.jpg)
+- ![Hotel Guide](https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/f4df7cf5-9b08-4ffe-9d6e-fdad15c2681d/2.jpg)
+- ![City Guide](https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/d62be091-b3c1-4026-915b-8a4c9109459e/3.jpg)
+- ![Beach Guide](https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/50027822-e850-4fee-998a-ac26465e7621/4.jpg)
+
+---
+
+## Bonus Features
+
+- Add search and filter functionality
+- Support for multiple languages
+- Analytics dashboard for admin usage stats
+
+---
+
+> **Build a lobby application as described above, using the provided images and schema as a starting point.**
+```
+Let me know if you want this tailored for a specific tech stack or want a starter code template!
+```
+
+Citations:
+[1] https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/7aa6855a-b123-42c2-a453-5d060812f380/1.jpg
+[2] https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/f4df7cf5-9b08-4ffe-9d6e-fdad15c2681d/2.jpg
+[3] https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/d62be091-b3c1-4026-915b-8a4c9109459e/3.jpg
+[4] https://pplx-res.cloudinary.com/image/private/user_uploads/40165024/50027822-e850-4fee-998a-ac26465e7621/4.jpg
+
+---
