@@ -170,29 +170,99 @@ export class DatabaseStorage implements IStorage {
             id: "city-guide",
             name: "City Guide",
             description: "Explore local attractions, transport options, and city highlights",
-            color: "#c6f5d6",
+            color: "#c1e1c1",
             imageUrl: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
           },
           {
             id: "beach-guide",
             name: "Beach Guide",
             description: "Information about local beaches, activities, and facilities",
-            color: "#f5c6f5",
+            color: "#fad1e6",
             imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
           },
           {
             id: "nature-guide",
             name: "Nature Guide",
             description: "Discover natural attractions, hiking trails, and wildlife",
-            color: "#c6e2f5",
+            color: "#a9d8f3",
             imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
           },
           {
             id: "fb-guide",
             name: "F&B Guide",
             description: "Restaurant hours, menus, and dining experiences",
-            color: "#f5e2c6",
+            color: "#e5bdea",
             imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "tour-guide",
+            name: "Tour Guide",
+            description: "Find guided tours, excursions, and unique experiences",
+            color: "#c1e1c1",
+            imageUrl: "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "hire-guide",
+            name: "Hire Guide",
+            description: "Find rental services for vehicles, equipment, and more",
+            color: "#ffff99",
+            imageUrl: "https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "transport-guide",
+            name: "Transport Guide",
+            description: "Information on public transport, taxis, and getting around",
+            color: "#ffcc66",
+            imageUrl: "https://images.unsplash.com/photo-1513618827532-c2c244a3d77d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "movie-guide",
+            name: "Movie Guide",
+            description: "Find cinemas, showtimes, and film information",
+            color: "#6699ff",
+            imageUrl: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "shopping-guide",
+            name: "Shopping Guide",
+            description: "Discover shopping centers, boutiques, and markets",
+            color: "#cc6633",
+            imageUrl: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "culture-guide",
+            name: "Culture Guide",
+            description: "Museums, galleries, and cultural attractions",
+            color: "#cccccc",
+            imageUrl: "https://images.unsplash.com/photo-1566140967404-b8b3932483f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "emergency-guide",
+            name: "Emergency Guide",
+            description: "Emergency contacts, hospitals, and safety information",
+            color: "#3399cc",
+            imageUrl: "https://images.unsplash.com/photo-1516315720917-231ef9f480af?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "show-guide",
+            name: "Show Guide",
+            description: "Theatre, concerts, and live entertainment",
+            color: "#66cc66",
+            imageUrl: "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "adventure-guide",
+            name: "Adventure Guide",
+            description: "Outdoor activities, adventure sports, and excursions",
+            color: "#cc66cc",
+            imageUrl: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
+          },
+          {
+            id: "kids-guide",
+            name: "Kids Guide",
+            description: "Family-friendly activities and attractions for children",
+            color: "#ccddff",
+            imageUrl: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500"
           }
         ];
         
