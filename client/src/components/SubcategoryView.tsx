@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { Guide, Category } from '@/lib/types';
-import { Subcategory } from './SubcategoryGrid';
+import { Guide, Category, Subcategory } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface SubcategoryViewProps {
   category: Category;
@@ -21,27 +21,38 @@ export default function SubcategoryView({
   isLoading = false 
 }: SubcategoryViewProps) {
   const { t } = useTranslation();
+  const [subcategory, setSubcategory] = useState<Subcategory | null>(null);
   
-  // This simulates filtering guides by subcategory
-  // In a real implementation with a database, this would be done on the server
-  const subcategoriesByCategory: Record<string, Subcategory[]> = {
-    'hotel-guide': [
-      { id: 'reception', name: 'RECEPTION HOURS', categoryId: 'hotel-guide' },
-      { id: 'tv-channels', name: 'TV CHANNELS', categoryId: 'hotel-guide' },
-      // other subcategories...
-    ],
-    'city-guide': [
-      { id: 'getting-around', name: 'GETTING AROUND', categoryId: 'city-guide' },
-      // other subcategories...
-    ],
-    // other categories...
-  };
+  // Fetch subcategory from the database
+  const { data: dbSubcategory, isLoading: isSubcategoryLoading } = useQuery<Subcategory>({
+    queryKey: ['/api/subcategories', subcategoryId],
+    queryFn: async () => {
+      const response = await fetch(`/api/subcategories/${subcategoryId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch subcategory');
+      }
+      return response.json();
+    },
+    enabled: !!subcategoryId,
+    onSuccess: (data: Subcategory) => {
+      setSubcategory(data);
+    },
+  });
   
-  // Find the selected subcategory
-  const subcategory = (subcategoriesByCategory[category.id] || [])
-    .find(sub => sub.id === subcategoryId);
+  // Fetch guides for this subcategory
+  const { data: subcategoryGuides = [], isLoading: isGuidesLoading } = useQuery<Guide[]>({
+    queryKey: ['/api/subcategories', subcategoryId, 'guides'],
+    queryFn: async () => {
+      const response = await fetch(`/api/subcategories/${subcategoryId}/guides`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch guides for subcategory');
+      }
+      return response.json();
+    },
+    enabled: !!subcategoryId,
+  });
   
-  if (isLoading) {
+  if (isLoading || isSubcategoryLoading || isGuidesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -49,7 +60,7 @@ export default function SubcategoryView({
     );
   }
   
-  if (!subcategory) {
+  if (!subcategory && !dbSubcategory) {
     return (
       <div className="text-center py-10">
         <h3 className="text-xl font-medium mb-2">Subcategory not found</h3>
@@ -58,25 +69,17 @@ export default function SubcategoryView({
     );
   }
   
-  // Filter guides - in practice all guides would use the same filter terms for now
-  // In a real implementation with subcategories in database, we would filter by subcategoryId
-  const filteredGuides = guides.filter(guide => {
-    // Safely check if properties exist before calling toLowerCase()
-    const title = guide.title?.toLowerCase() || '';
-    const excerpt = guide.excerpt?.toLowerCase() || '';
-    const content = guide.content?.toLowerCase() || '';
-    const subcategoryName = subcategory.name.toLowerCase();
-    
-    return title.includes(subcategoryName) || 
-           excerpt.includes(subcategoryName) || 
-           content.includes(subcategoryName);
-  });
+  // Use direct subcategory filtering by ID rather than text matching
+  const currentSubcategory = subcategory || dbSubcategory;
+  const filteredGuides = subcategoryGuides.length > 0 
+    ? subcategoryGuides 
+    : guides.filter(guide => guide.subcategoryId === subcategoryId);
 
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">{subcategory.name}</h2>
-        <p className="text-xl text-gray-600">{category.name} | {subcategory.name}</p>
+        <h2 className="text-3xl font-bold mb-2">{currentSubcategory?.name}</h2>
+        <p className="text-xl text-gray-600">{category.name} | {currentSubcategory?.name}</p>
       </div>
       
       {filteredGuides.length === 0 ? (
