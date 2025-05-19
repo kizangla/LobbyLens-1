@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import AdminPanel from "@/pages/AdminFixed";
+import AdminPanel from "@/pages/AdminFixedNew";
 
 // App context for theme and language preferences
 import { useState, createContext, useContext, ReactNode } from "react";
