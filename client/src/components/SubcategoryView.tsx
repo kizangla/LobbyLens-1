@@ -60,11 +60,17 @@ export default function SubcategoryView({
   
   // Filter guides - in practice all guides would use the same filter terms for now
   // In a real implementation with subcategories in database, we would filter by subcategoryId
-  const filteredGuides = guides.filter(guide => 
-    guide.title.toLowerCase().includes(subcategory.name.toLowerCase()) ||
-    guide.excerpt.toLowerCase().includes(subcategory.name.toLowerCase()) ||
-    guide.content.toLowerCase().includes(subcategory.name.toLowerCase())
-  );
+  const filteredGuides = guides.filter(guide => {
+    // Safely check if properties exist before calling toLowerCase()
+    const title = guide.title?.toLowerCase() || '';
+    const excerpt = guide.excerpt?.toLowerCase() || '';
+    const content = guide.content?.toLowerCase() || '';
+    const subcategoryName = subcategory.name.toLowerCase();
+    
+    return title.includes(subcategoryName) || 
+           excerpt.includes(subcategoryName) || 
+           content.includes(subcategoryName);
+  });
 
   return (
     <div>
