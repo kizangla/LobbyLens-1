@@ -77,7 +77,11 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
       { id: 'mullaloo', name: 'MULLALOO BEACH', categoryId: 'beach-guide' },
       { id: 'whitfords', name: 'WHITFORDS BEACH', categoryId: 'beach-guide' },
       { id: 'pinnaroo', name: 'PINNAROO POINT', categoryId: 'beach-guide' },
-      // Add more beaches as shown in the screenshot
+      { id: 'hillarys', name: 'HILLARYS BEACH', categoryId: 'beach-guide' },
+      { id: 'sorrento', name: 'SORRENTO BEACH', categoryId: 'beach-guide' },
+      { id: 'watermans', name: 'WATERMANS BAY', categoryId: 'beach-guide' },
+      { id: 'city-beach', name: 'CITY BEACH', categoryId: 'beach-guide' },
+      { id: 'trigg', name: 'TRIGG BEACH', categoryId: 'beach-guide' },
     ],
     'nature-guide': [
       { id: 'national-parks', name: 'NATIONAL PARKS', categoryId: 'nature-guide' },
@@ -90,20 +94,28 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
       { id: 'forests', name: 'FORESTS', categoryId: 'nature-guide' },
       { id: 'bush-walks', name: 'BUSH WALKS', categoryId: 'nature-guide' },
       { id: 'water-falls', name: 'WATER FALLS', categoryId: 'nature-guide' },
-      // Add more nature spots as shown in the screenshot
+      { id: 'dams', name: 'DAMS', categoryId: 'nature-guide' },
+      { id: 'lakes', name: 'LAKES', categoryId: 'nature-guide' },
+      { id: 'mountains', name: 'MOUNTAINS', categoryId: 'nature-guide' },
+      { id: 'rivers', name: 'RIVERS', categoryId: 'nature-guide' },
+      { id: 'wildlife-parks', name: 'WILDLIFE PARKS', categoryId: 'nature-guide' },
     ],
-    'food-guide': [
-      { id: 'all-you-can-eat', name: 'ALL YOU CAN EAT', categoryId: 'food-guide' },
-      { id: 'buffets', name: 'BUFFETS', categoryId: 'food-guide' },
-      { id: 'street-food', name: 'STREET FOOD', categoryId: 'food-guide' },
-      { id: 'burger-joints', name: 'BURGER JOINTS', categoryId: 'food-guide' },
-      { id: 'vegetarian', name: 'VEGETARIAN', categoryId: 'food-guide' },
-      { id: 'restaurants', name: 'RESTAURANTS', categoryId: 'food-guide' },
-      { id: 'bars', name: 'BARS', categoryId: 'food-guide' },
-      { id: 'taverns', name: 'TAVERNS', categoryId: 'food-guide' },
-      { id: 'cafes', name: 'CAFES', categoryId: 'food-guide' },
-      { id: 'coffee-shops', name: 'COFFEE SHOPS', categoryId: 'food-guide' },
-      // Add more food options as shown in the screenshot
+    'fb-guide': [
+      { id: 'all-you-can-eat', name: 'ALL YOU CAN EAT', categoryId: 'fb-guide' },
+      { id: 'buffets', name: 'BUFFETS', categoryId: 'fb-guide' },
+      { id: 'street-food', name: 'STREET FOOD', categoryId: 'fb-guide' },
+      { id: 'burger-joints', name: 'BURGER JOINTS', categoryId: 'fb-guide' },
+      { id: 'vegetarian', name: 'VEGETARIAN', categoryId: 'fb-guide' },
+      { id: 'restaurants', name: 'RESTAURANTS', categoryId: 'fb-guide' },
+      { id: 'bars', name: 'BARS', categoryId: 'fb-guide' },
+      { id: 'taverns', name: 'TAVERNS', categoryId: 'fb-guide' },
+      { id: 'cafes', name: 'CAFES', categoryId: 'fb-guide' },
+      { id: 'coffee-shops', name: 'COFFEE SHOPS', categoryId: 'fb-guide' },
+      { id: 'beer-gardens', name: 'BEER GARDENS', categoryId: 'fb-guide' },
+      { id: 'wine-bars', name: 'WINE BARS', categoryId: 'fb-guide' },
+      { id: 'cocktail-bars', name: 'COCKTAIL BARS', categoryId: 'fb-guide' },
+      { id: 'fine-dining', name: 'FINE DINING', categoryId: 'fb-guide' },
+      { id: 'tea-rooms', name: 'TEA ROOMS', categoryId: 'fb-guide' },
     ],
     'tour-guide': [
       { id: 'fishing-tours', name: 'FISHING TOURS', categoryId: 'tour-guide' },
@@ -116,7 +128,119 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
       { id: 'coach-tours', name: 'COACH TOURS', categoryId: 'tour-guide' },
       { id: 'walking-tours', name: 'WALKING TOURS', categoryId: 'tour-guide' },
       { id: 'private-tours', name: 'PRIVATE TOURS', categoryId: 'tour-guide' },
-      // Add more tour options as shown in the screenshot
+      { id: 'food-tours', name: 'FOOD TOURS', categoryId: 'tour-guide' },
+      { id: 'cultural-tours', name: 'CULTURAL TOURS', categoryId: 'tour-guide' },
+      { id: 'kayak-tours', name: 'KAYAK TOURS', categoryId: 'tour-guide' },
+      { id: 'river-tours', name: 'RIVER TOURS', categoryId: 'tour-guide' },
+      { id: 'helicopter-tours', name: 'HELICOPTER TOURS', categoryId: 'tour-guide' },
+    ],
+    'hire-guide': [
+      { id: 'car-hire', name: 'CAR HIRE', categoryId: 'hire-guide' },
+      { id: 'bike-hire', name: 'BIKE HIRE', categoryId: 'hire-guide' },
+      { id: 'boat-hire', name: 'BOAT HIRE', categoryId: 'hire-guide' },
+      { id: 'kayak-hire', name: 'KAYAK HIRE', categoryId: 'hire-guide' },
+      { id: 'jet-ski-hire', name: 'JET SKI HIRE', categoryId: 'hire-guide' },
+      { id: 'surfboard-hire', name: 'SURFBOARD HIRE', categoryId: 'hire-guide' },
+      { id: 'paddle-board-hire', name: 'PADDLE BOARD HIRE', categoryId: 'hire-guide' },
+      { id: 'equipment-hire', name: 'EQUIPMENT HIRE', categoryId: 'hire-guide' },
+      { id: 'camping-gear-hire', name: 'CAMPING GEAR HIRE', categoryId: 'hire-guide' },
+      { id: 'formal-wear-hire', name: 'FORMAL WEAR HIRE', categoryId: 'hire-guide' },
+    ],
+    'transport-guide': [
+      { id: 'bus-services', name: 'BUS SERVICES', categoryId: 'transport-guide' },
+      { id: 'train-services', name: 'TRAIN SERVICES', categoryId: 'transport-guide' },
+      { id: 'ferry-services', name: 'FERRY SERVICES', categoryId: 'transport-guide' },
+      { id: 'taxi-services', name: 'TAXI SERVICES', categoryId: 'transport-guide' },
+      { id: 'ride-share', name: 'RIDE SHARE', categoryId: 'transport-guide' },
+      { id: 'airport-transfers', name: 'AIRPORT TRANSFERS', categoryId: 'transport-guide' },
+      { id: 'shuttle-buses', name: 'SHUTTLE BUSES', categoryId: 'transport-guide' },
+      { id: 'car-rentals', name: 'CAR RENTALS', categoryId: 'transport-guide' },
+      { id: 'bike-rentals', name: 'BIKE RENTALS', categoryId: 'transport-guide' },
+      { id: 'public-transport', name: 'PUBLIC TRANSPORT', categoryId: 'transport-guide' },
+    ],
+    'movie-guide': [
+      { id: 'cinemas', name: 'CINEMAS', categoryId: 'movie-guide' },
+      { id: 'movie-times', name: 'MOVIE TIMES', categoryId: 'movie-guide' },
+      { id: 'new-releases', name: 'NEW RELEASES', categoryId: 'movie-guide' },
+      { id: 'outdoor-cinema', name: 'OUTDOOR CINEMA', categoryId: 'movie-guide' },
+      { id: 'drive-in', name: 'DRIVE-IN', categoryId: 'movie-guide' },
+      { id: 'film-festivals', name: 'FILM FESTIVALS', categoryId: 'movie-guide' },
+      { id: 'movie-locations', name: 'MOVIE LOCATIONS', categoryId: 'movie-guide' },
+      { id: 'cinema-deals', name: 'CINEMA DEALS', categoryId: 'movie-guide' },
+      { id: 'kids-movies', name: 'KIDS MOVIES', categoryId: 'movie-guide' },
+      { id: 'special-screenings', name: 'SPECIAL SCREENINGS', categoryId: 'movie-guide' },
+    ],
+    'shopping-guide': [
+      { id: 'shopping-centers', name: 'SHOPPING CENTERS', categoryId: 'shopping-guide' },
+      { id: 'boutiques', name: 'BOUTIQUES', categoryId: 'shopping-guide' },
+      { id: 'markets', name: 'MARKETS', categoryId: 'shopping-guide' },
+      { id: 'souvenir-shops', name: 'SOUVENIR SHOPS', categoryId: 'shopping-guide' },
+      { id: 'department-stores', name: 'DEPARTMENT STORES', categoryId: 'shopping-guide' },
+      { id: 'fashion', name: 'FASHION', categoryId: 'shopping-guide' },
+      { id: 'electronics', name: 'ELECTRONICS', categoryId: 'shopping-guide' },
+      { id: 'bookstores', name: 'BOOKSTORES', categoryId: 'shopping-guide' },
+      { id: 'duty-free', name: 'DUTY FREE', categoryId: 'shopping-guide' },
+      { id: 'outlet-malls', name: 'OUTLET MALLS', categoryId: 'shopping-guide' },
+    ],
+    'culture-guide': [
+      { id: 'art-galleries', name: 'ART GALLERIES', categoryId: 'culture-guide' },
+      { id: 'museums', name: 'MUSEUMS', categoryId: 'culture-guide' },
+      { id: 'theaters', name: 'THEATERS', categoryId: 'culture-guide' },
+      { id: 'historic-sites', name: 'HISTORIC SITES', categoryId: 'culture-guide' },
+      { id: 'indigenous-culture', name: 'INDIGENOUS CULTURE', categoryId: 'culture-guide' },
+      { id: 'cultural-events', name: 'CULTURAL EVENTS', categoryId: 'culture-guide' },
+      { id: 'music-venues', name: 'MUSIC VENUES', categoryId: 'culture-guide' },
+      { id: 'festivals', name: 'FESTIVALS', categoryId: 'culture-guide' },
+      { id: 'architectural-sites', name: 'ARCHITECTURAL SITES', categoryId: 'culture-guide' },
+      { id: 'heritage-walks', name: 'HERITAGE WALKS', categoryId: 'culture-guide' },
+    ],
+    'emergency-guide': [
+      { id: 'emergency-numbers', name: 'EMERGENCY NUMBERS', categoryId: 'emergency-guide' },
+      { id: 'hospitals', name: 'HOSPITALS', categoryId: 'emergency-guide' },
+      { id: 'medical-centers', name: 'MEDICAL CENTERS', categoryId: 'emergency-guide' },
+      { id: 'pharmacies', name: 'PHARMACIES', categoryId: 'emergency-guide' },
+      { id: 'police-stations', name: 'POLICE STATIONS', categoryId: 'emergency-guide' },
+      { id: 'fire-stations', name: 'FIRE STATIONS', categoryId: 'emergency-guide' },
+      { id: 'emergency-procedures', name: 'EMERGENCY PROCEDURES', categoryId: 'emergency-guide' },
+      { id: 'consulates', name: 'CONSULATES', categoryId: 'emergency-guide' },
+      { id: 'lost-property', name: 'LOST PROPERTY', categoryId: 'emergency-guide' },
+      { id: 'emergency-transport', name: 'EMERGENCY TRANSPORT', categoryId: 'emergency-guide' },
+    ],
+    'show-guide': [
+      { id: 'theater-shows', name: 'THEATER SHOWS', categoryId: 'show-guide' },
+      { id: 'concerts', name: 'CONCERTS', categoryId: 'show-guide' },
+      { id: 'comedy-shows', name: 'COMEDY SHOWS', categoryId: 'show-guide' },
+      { id: 'dance-performances', name: 'DANCE PERFORMANCES', categoryId: 'show-guide' },
+      { id: 'musicals', name: 'MUSICALS', categoryId: 'show-guide' },
+      { id: 'opera', name: 'OPERA', categoryId: 'show-guide' },
+      { id: 'live-music', name: 'LIVE MUSIC', categoryId: 'show-guide' },
+      { id: 'festivals', name: 'FESTIVALS', categoryId: 'show-guide' },
+      { id: 'ticket-information', name: 'TICKET INFORMATION', categoryId: 'show-guide' },
+      { id: 'venue-information', name: 'VENUE INFORMATION', categoryId: 'show-guide' },
+    ],
+    'adventure-guide': [
+      { id: 'hiking', name: 'HIKING', categoryId: 'adventure-guide' },
+      { id: 'rock-climbing', name: 'ROCK CLIMBING', categoryId: 'adventure-guide' },
+      { id: 'water-sports', name: 'WATER SPORTS', categoryId: 'adventure-guide' },
+      { id: 'skydiving', name: 'SKYDIVING', categoryId: 'adventure-guide' },
+      { id: 'bungee-jumping', name: 'BUNGEE JUMPING', categoryId: 'adventure-guide' },
+      { id: 'surfing', name: 'SURFING', categoryId: 'adventure-guide' },
+      { id: 'kayaking', name: 'KAYAKING', categoryId: 'adventure-guide' },
+      { id: 'mountain-biking', name: 'MOUNTAIN BIKING', categoryId: 'adventure-guide' },
+      { id: 'zip-lining', name: 'ZIP LINING', categoryId: 'adventure-guide' },
+      { id: 'paragliding', name: 'PARAGLIDING', categoryId: 'adventure-guide' },
+    ],
+    'kids-guide': [
+      { id: 'playgrounds', name: 'PLAYGROUNDS', categoryId: 'kids-guide' },
+      { id: 'water-parks', name: 'WATER PARKS', categoryId: 'kids-guide' },
+      { id: 'amusement-parks', name: 'AMUSEMENT PARKS', categoryId: 'kids-guide' },
+      { id: 'kids-activities', name: 'KIDS ACTIVITIES', categoryId: 'kids-guide' },
+      { id: 'family-events', name: 'FAMILY EVENTS', categoryId: 'kids-guide' },
+      { id: 'kid-friendly-restaurants', name: 'KID-FRIENDLY RESTAURANTS', categoryId: 'kids-guide' },
+      { id: 'child-care', name: 'CHILD CARE', categoryId: 'kids-guide' },
+      { id: 'kids-museums', name: 'KIDS MUSEUMS', categoryId: 'kids-guide' },
+      { id: 'indoor-play-centers', name: 'INDOOR PLAY CENTERS', categoryId: 'kids-guide' },
+      { id: 'wildlife-experiences', name: 'WILDLIFE EXPERIENCES', categoryId: 'kids-guide' },
     ]
   };
   
@@ -125,12 +249,21 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
   
   // Color mapping based on category
   const colorMap: Record<string, string> = {
-    'hotel-guide': 'bg-[#f5c6aa]',
-    'city-guide': 'bg-[#c1e1c1]',
-    'beach-guide': 'bg-[#fad1e6]',
-    'nature-guide': 'bg-[#a9d8f3]',
-    'food-guide': 'bg-[#e5bdea]',
-    'tour-guide': 'bg-[#c1e1c1]',
+    'hotel-guide': 'bg-[#f5c6aa]',      // Peach
+    'city-guide': 'bg-[#c1e1c1]',       // Light green
+    'beach-guide': 'bg-[#fad1e6]',      // Light pink
+    'nature-guide': 'bg-[#a9d8f3]',     // Light blue
+    'fb-guide': 'bg-[#e5bdea]',         // Light purple
+    'tour-guide': 'bg-[#c1e1c1]',       // Light green
+    'hire-guide': 'bg-[#ffff99]',       // Light yellow
+    'transport-guide': 'bg-[#ffcc66]',  // Light orange
+    'movie-guide': 'bg-[#6699ff]',      // Medium blue
+    'shopping-guide': 'bg-[#cc6633]',   // Brown
+    'culture-guide': 'bg-[#cccccc]',    // Grey
+    'emergency-guide': 'bg-[#3399cc]',  // Teal blue
+    'show-guide': 'bg-[#66cc66]',       // Medium green
+    'adventure-guide': 'bg-[#cc66cc]',  // Purple
+    'kids-guide': 'bg-[#ccddff]',       // Very light blue
   };
   
   // Get base color for this category
