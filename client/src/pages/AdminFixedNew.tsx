@@ -420,11 +420,25 @@ function GuidesManager() {
   const subcategoriesByCategory = useMemo(() => {
     const result: Record<string, Subcategory[]> = {};
     
+    // Debug what subcategories we have
+    console.log("Current subcategories:", subcategories);
+    
     subcategories.forEach((subcategory) => {
       if (!result[subcategory.categoryId]) {
         result[subcategory.categoryId] = [];
       }
       result[subcategory.categoryId].push(subcategory);
+    });
+    
+    // Also add subcategories to alternative category ID formats
+    // This handles cases where 'fb-guide' and 'f&b-guide' might be different
+    Object.keys(result).forEach(categoryId => {
+      // For fb-guide, also add to f&b-guide and vice versa
+      if (categoryId === 'fb-guide') {
+        result['f&b-guide'] = result[categoryId];
+      } else if (categoryId === 'f&b-guide') {
+        result['fb-guide'] = result[categoryId];
+      }
     });
     
     console.log("Organized subcategories:", result);
