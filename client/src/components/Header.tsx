@@ -7,11 +7,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Search, ArrowLeft, SunIcon, CloudRainIcon, CloudIcon, CloudLightningIcon } from 'lucide-react';
+import { ChevronDown, Search, ArrowLeft, SunIcon, CloudRainIcon, CloudIcon, CloudLightningIcon, Settings } from 'lucide-react';
 import { useAppContext } from '@/App';
 import { useWeather } from '@/lib/weatherService';
 import { useTranslation } from '@/lib/i18n';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'wouter';
 
 interface HeaderProps {
   onBackClick?: () => void;
@@ -126,6 +127,14 @@ export default function Header({ onBackClick, showBackButton, onSearch }: Header
         
         {/* Clock */}
         <div>{formattedTime}</div>
+        
+        {/* Admin link */}
+        <Link href="/admin">
+          <Button variant="ghost" className="flex items-center space-x-1 h-8 px-2 text-white">
+            <Settings className="h-4 w-4 mr-1" />
+            <span>Admin</span>
+          </Button>
+        </Link>
         
         {/* Language selector */}
         <DropdownMenu>
