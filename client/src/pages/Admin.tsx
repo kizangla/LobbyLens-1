@@ -518,6 +518,7 @@ function GuidesManager() {
     setFormData({
       id: '',
       categoryId: '',
+      subcategoryId: '',
       title: '',
       excerpt: '',
       content: '',
@@ -533,6 +534,7 @@ function GuidesManager() {
     setFormData({
       id: guide.id,
       categoryId: guide.categoryId,
+      subcategoryId: guide.subcategoryId || '',
       title: guide.title,
       excerpt: guide.excerpt,
       content: guide.content,

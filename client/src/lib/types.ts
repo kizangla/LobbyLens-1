@@ -9,6 +9,7 @@ export interface Category {
 export interface Guide {
   id: string;
   categoryId: string;
+  subcategoryId?: string | null;
   title: string;
   excerpt: string;
   content: string;
