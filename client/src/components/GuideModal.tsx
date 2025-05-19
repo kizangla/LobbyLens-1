@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Guide, Category } from "@/lib/types";
+import GuideDetail from "./GuideDetail";
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -15,10 +16,9 @@ export default function GuideModal({ isOpen, onClose, guide, category }: GuideMo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] p-0 flex flex-col">
+      <DialogContent className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] p-0 flex flex-col">
         <DialogHeader className={`p-6 border-b flex justify-between items-center bg-${category.id} bg-opacity-20`}>
           <div>
-            <DialogTitle className="text-2xl font-poppins font-semibold">{guide.title}</DialogTitle>
             <p className="text-gray-600">{category.name}</p>
           </div>
           <Button 
@@ -32,10 +32,7 @@ export default function GuideModal({ isOpen, onClose, guide, category }: GuideMo
         </DialogHeader>
         
         <div className="p-6 overflow-y-auto guide-content">
-          <div 
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: guide.content }}
-          />
+          <GuideDetail guide={guide} onBack={onClose} />
         </div>
       </DialogContent>
     </Dialog>
