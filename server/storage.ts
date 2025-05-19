@@ -1,6 +1,7 @@
 import { 
   users, type User, type InsertUser,
   categories, type Category, type InsertCategory,
+  subcategories, type Subcategory, type InsertSubcategory,
   guides, type Guide, type InsertGuide
 } from "@shared/schema";
 import { db } from "./db";
@@ -20,9 +21,18 @@ export interface IStorage {
   updateCategory(id: string, category: InsertCategory): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
   
+  // Subcategory methods
+  getAllSubcategories(): Promise<Subcategory[]>;
+  getSubcategoriesByCategoryId(categoryId: string): Promise<Subcategory[]>;
+  getSubcategoryById(id: string): Promise<Subcategory | undefined>;
+  createSubcategory(subcategory: InsertSubcategory): Promise<Subcategory>;
+  updateSubcategory(id: string, subcategory: InsertSubcategory): Promise<Subcategory | undefined>;
+  deleteSubcategory(id: string): Promise<boolean>;
+  
   // Guide methods
   getGuideById(id: string): Promise<Guide | undefined>;
   getGuidesByCategoryId(categoryId: string): Promise<Guide[]>;
+  getGuidesBySubcategoryId(subcategoryId: string): Promise<Guide[]>;
   createGuide(guide: InsertGuide): Promise<Guide>;
   updateGuide(id: string, guide: InsertGuide): Promise<Guide | undefined>;
   deleteGuide(id: string): Promise<boolean>;

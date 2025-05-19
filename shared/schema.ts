@@ -30,10 +30,25 @@ export const insertCategorySchema = createInsertSchema(categories);
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
+// Subcategories schema
+export const subcategories = pgTable("subcategories", {
+  id: text("id").primaryKey(),
+  categoryId: text("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color"),
+  order: integer("order"),
+});
+
+export const insertSubcategorySchema = createInsertSchema(subcategories);
+export type InsertSubcategory = z.infer<typeof insertSubcategorySchema>;
+export type Subcategory = typeof subcategories.$inferSelect;
+
 // Guides schema
 export const guides = pgTable("guides", {
   id: text("id").primaryKey(),
   categoryId: text("category_id").notNull().references(() => categories.id),
+  subcategoryId: text("subcategory_id").references(() => subcategories.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   excerpt: text("excerpt").notNull(),
   content: text("content").notNull(),
