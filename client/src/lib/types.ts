@@ -24,6 +24,16 @@ export interface CategoryWithGuides extends Category {
   guides: Guide[];
 }
 
+export interface Subcategory {
+  id: string;
+  name: string;
+  categoryId: string;
+  description?: string;
+  color?: string;
+  order?: number;
+}
+
 // For admin panel form handling
 export interface InsertCategory extends Category {}
 export interface InsertGuide extends Guide {}
+export interface InsertSubcategory extends Subcategory {}

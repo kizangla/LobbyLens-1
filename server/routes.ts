@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCategorySchema, insertGuideSchema } from "@shared/schema";
+import { insertCategorySchema, insertGuideSchema, insertSubcategorySchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -47,6 +47,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching guides:", error);
       res.status(500).json({ message: "Failed to fetch guides" });
+    }
+  });
+  
+  // Get all subcategories
+  app.get("/api/subcategories", async (req, res) => {
+    try {
+      const subcategories = await storage.getAllSubcategories();
+      res.json(subcategories);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      res.status(500).json({ message: "Failed to fetch subcategories" });
+    }
+  });
+  
+  // Get subcategories for a specific category
+  app.get("/api/categories/:id/subcategories", async (req, res) => {
+    try {
+      const category = await storage.getCategoryById(req.params.id);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      const subcategories = await storage.getSubcategoriesByCategoryId(req.params.id);
+      res.json(subcategories);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      res.status(500).json({ message: "Failed to fetch subcategories" });
     }
   });
 

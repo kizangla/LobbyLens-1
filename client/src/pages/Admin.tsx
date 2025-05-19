@@ -29,7 +29,7 @@ import {
 import { Loader2, Plus, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Category, Guide, InsertCategory, InsertGuide } from '@/lib/types';
+import { Category, Guide, InsertCategory, InsertGuide, Subcategory } from '@/lib/types';
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('categories');
@@ -392,6 +392,7 @@ function GuidesManager() {
   const [formData, setFormData] = useState<Partial<InsertGuide>>({
     id: '',
     categoryId: '',
+    subcategoryId: '',
     title: '',
     excerpt: '',
     content: '',
