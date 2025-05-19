@@ -409,10 +409,14 @@ function GuidesManager() {
     queryKey: ['/api/guides'],
   });
   
+  console.log("Current guides:", guides);
+  
   // Fetch all subcategories
   const { data: subcategories = [], isLoading: subcategoriesLoading } = useQuery<Subcategory[]>({
     queryKey: ['/api/subcategories'],
   });
+  
+  console.log("Loaded subcategories:", subcategories);
   
   // Organize subcategories by categoryId for easier selection
   const subcategoriesByCategory = useMemo(() => {
@@ -425,6 +429,7 @@ function GuidesManager() {
       result[subcategory.categoryId].push(subcategory);
     });
     
+    console.log("Organized subcategories:", result);
     return result;
   }, [subcategories]);
   
@@ -611,62 +616,72 @@ function GuidesManager() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="id" className="text-sm font-medium">ID (used in URLs, no spaces)</label>
-                  <Input 
-                    id="id" 
-                    name="id" 
-                    value={formData.id} 
-                    onChange={handleInputChange}
-                    placeholder="wifi-access"
-                    disabled={!!editingGuide}
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="id" className="text-sm font-medium">ID (used in URLs, no spaces)</label>
+                    <Input 
+                      id="id" 
+                      name="id" 
+                      value={formData.id} 
+                      onChange={handleInputChange}
+                      placeholder="wifi-access"
+                      disabled={!!editingGuide}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="order" className="text-sm font-medium">Display Order</label>
+                    <Input 
+                      id="order" 
+                      name="order" 
+                      type="number"
+                      value={formData.order?.toString() || "1"} 
+                      onChange={handleInputChange}
+                      min="1"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="categoryId" className="text-sm font-medium">Category</label>
-                  <select 
-                    id="categoryId" 
-                    name="categoryId" 
-                    value={formData.categoryId} 
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="subcategoryId" className="text-sm font-medium">Subcategory</label>
-                <select 
-                  id="subcategoryId" 
-                  name="subcategoryId" 
-                  value={formData.subcategoryId || ''}
-                  onChange={handleInputChange}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  disabled={!formData.categoryId}
-                >
-                  <option value="">Select a subcategory</option>
-                  {formData.categoryId && (
-                    <>
-                      {/* Using hardcoded subcategories from our application */}
-                      {subcategoriesByCategory[formData.categoryId]?.map(subcategory => (
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="categoryId" className="text-sm font-medium">Category</label>
+                    <select 
+                      id="categoryId" 
+                      name="categoryId" 
+                      value={formData.categoryId} 
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map(category => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="subcategoryId" className="text-sm font-medium">Subcategory</label>
+                    <select 
+                      id="subcategoryId" 
+                      name="subcategoryId" 
+                      value={formData.subcategoryId || ''}
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      disabled={!formData.categoryId}
+                    >
+                      <option value="">Select a subcategory</option>
+                      {formData.categoryId && subcategoriesByCategory[formData.categoryId]?.map(subcategory => (
                         <option key={subcategory.id} value={subcategory.id}>
                           {subcategory.name}
                         </option>
                       ))}
-                    </>
-                  )}
-                </select>
-                {!formData.categoryId && (
-                  <p className="text-xs text-muted-foreground mt-1">Please select a category first</p>
-                )}
+                    </select>
+                    {!formData.categoryId && (
+                      <p className="text-xs text-muted-foreground mt-1">Please select a category first</p>
+                    )}
+                  </div>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
