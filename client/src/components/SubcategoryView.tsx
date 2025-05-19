@@ -34,10 +34,14 @@ export default function SubcategoryView({
       return response.json();
     },
     enabled: !!subcategoryId,
-    onSuccess: (data: Subcategory) => {
-      setSubcategory(data);
-    },
   });
+  
+  // Update local state when data is fetched
+  useEffect(() => {
+    if (dbSubcategory) {
+      setSubcategory(dbSubcategory);
+    }
+  }, [dbSubcategory]);
   
   // Fetch guides for this subcategory
   const { data: subcategoryGuides = [], isLoading: isGuidesLoading } = useQuery<Guide[]>({
@@ -75,11 +79,13 @@ export default function SubcategoryView({
     ? subcategoryGuides 
     : guides.filter(guide => guide.subcategoryId === subcategoryId);
 
+  const displayName = subcategory?.name || dbSubcategory?.name || 'Subcategory';
+  
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">{currentSubcategory?.name}</h2>
-        <p className="text-xl text-gray-600">{category.name} | {currentSubcategory?.name}</p>
+        <h2 className="text-3xl font-bold mb-2">{displayName}</h2>
+        <p className="text-xl text-gray-600">{category.name} | {displayName}</p>
       </div>
       
       {filteredGuides.length === 0 ? (
