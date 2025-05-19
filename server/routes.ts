@@ -50,6 +50,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all guides (for admin panel)
+  app.get("/api/guides", async (req, res) => {
+    try {
+      // Since we don't have a method to get all guides, we'll get them by categories
+      const categories = await storage.getAllCategories();
+      const allGuides = [];
+
+      for (const category of categories) {
+        const guides = await storage.getGuidesByCategoryId(category.id);
+        allGuides.push(...guides);
+      }
+
+      res.json(allGuides);
+    } catch (error) {
+      console.error("Error fetching all guides:", error);
+      res.status(500).json({ message: "Failed to fetch guides" });
+    }
+  });
+
   // Get a specific guide
   app.get("/api/guides/:id", async (req, res) => {
     try {

@@ -22,3 +22,7 @@ export interface SearchResult extends Guide {
 export interface CategoryWithGuides extends Category {
   guides: Guide[];
 }
+
+// For admin panel form handling
+export interface InsertCategory extends Category {}
+export interface InsertGuide extends Guide {}
