@@ -181,12 +181,16 @@ function SubcategoriesManager() {
   // Set up edit mode
   const handleEditSubcategory = (subcategory: Subcategory) => {
     setEditingSubcategory(subcategory);
+    // If subcategory has no color, use parent category's color
+    const parentCategoryColor = subcategory.color || 
+      categories.find(c => c.id === subcategory.categoryId)?.color || '';
+    
     setFormData({
       id: subcategory.id,
       name: subcategory.name,
       categoryId: subcategory.categoryId,
       description: subcategory.description || '',
-      color: subcategory.color || '',
+      color: parentCategoryColor,
       order: subcategory.order || 1
     });
     setIsAdding(true);
@@ -309,22 +313,46 @@ function SubcategoriesManager() {
               
               <div className="space-y-2">
                 <label htmlFor="color" className="text-sm font-medium">Color (optional)</label>
-                <div className="flex space-x-2">
-                  <Input 
-                    id="color" 
-                    name="color" 
-                    type="color"
-                    value={formData.color || '#ffffff'} 
-                    onChange={handleInputChange}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input 
-                    name="color"
-                    value={formData.color} 
-                    onChange={handleInputChange}
-                    className="flex-1"
-                    placeholder="#ffffff"
-                  />
+                <div className="flex flex-col space-y-2">
+                  {formData.categoryId && (
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <span>Parent category color:</span>
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: categories.find(c => c.id === formData.categoryId)?.color || '#ffffff' }}
+                      ></div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        type="button"
+                        onClick={() => {
+                          const parentColor = categories.find(c => c.id === formData.categoryId)?.color;
+                          if (parentColor) {
+                            setFormData(prev => ({...prev, color: parentColor}));
+                          }
+                        }}
+                      >
+                        Use Parent Color
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex space-x-2">
+                    <Input 
+                      id="color" 
+                      name="color" 
+                      type="color"
+                      value={formData.color || '#ffffff'} 
+                      onChange={handleInputChange}
+                      className="w-12 h-10 p-1"
+                    />
+                    <Input 
+                      name="color"
+                      value={formData.color} 
+                      onChange={handleInputChange}
+                      className="flex-1"
+                      placeholder="#ffffff"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
