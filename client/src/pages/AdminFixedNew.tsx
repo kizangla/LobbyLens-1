@@ -400,6 +400,13 @@ function SubcategoriesManager() {
                 <TableRow key={subcategory.id}>
                   <TableCell>{subcategory.id}</TableCell>
                   <TableCell>{subcategory.name}</TableCell>
+                  <TableCell>
+                    <div 
+                      className="w-6 h-6 rounded-full" 
+                      style={{ backgroundColor: subcategory.color || '#cccccc' }}
+                      title={subcategory.color || "No color"}
+                    />
+                  </TableCell>
                   <TableCell>{getCategoryName(subcategory.categoryId)}</TableCell>
                   <TableCell>{subcategory.order || 1}</TableCell>
                   <TableCell>
