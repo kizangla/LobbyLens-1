@@ -23,6 +23,14 @@ export default function SubcategoryColorSelector({
     setColorValue(color || '#ffffff');
   }, [color]);
   
+  // Auto-inherit parent color when category changes and no color is set
+  useEffect(() => {
+    if (categoryId && parentCategory && (!color || color === '#ffffff')) {
+      setColorValue(parentColor);
+      onChange(parentColor);
+    }
+  }, [categoryId, parentCategory, parentColor, color, onChange]);
+  
   // Handle color input change
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
