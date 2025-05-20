@@ -376,6 +376,7 @@ function SubcategoriesManager() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Color</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Order</TableHead>
               <TableHead>Actions</TableHead>
