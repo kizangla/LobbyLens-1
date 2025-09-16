@@ -7,6 +7,7 @@ import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import AdminPanel from "@/pages/AdminFixedNew";
+import PartnerPortal from "@/pages/PartnerPortal";
 
 // App context for theme and language preferences
 import { useState, createContext, useContext, ReactNode } from "react";
@@ -38,6 +39,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/partner" component={PartnerPortal} />
       <Route component={NotFound} />
     </Switch>
   );

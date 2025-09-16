@@ -960,6 +960,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ================== PARTNER PORTAL ROUTES ==================
+  
+  // Partner login (email-based auth for MVP)
+  app.post("/api/partner/login", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Find business by email
+      const businesses = await storage.getAllBusinesses();
+      const business = businesses.find(b => b.email.toLowerCase() === email.toLowerCase());
+      
+      if (!business) {
+        return res.status(401).json({ error: "Business not found with this email" });
+      }
+      
+      if (!business.isActive) {
+        return res.status(403).json({ error: "Business account is inactive" });
+      }
+      
+      res.json({ business });
+    } catch (error) {
+      console.error("Error during partner login:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Get partner's guides
+  app.get("/api/guides/business/:businessId", async (req, res) => {
+    try {
+      const guides = await storage.getPartnerGuides(req.params.businessId);
+      res.json(guides);
+    } catch (error) {
+      console.error("Error fetching partner guides:", error);
+      res.status(500).json({ message: "Failed to fetch guides" });
+    }
+  });
+
+  // Create partner guide
+  app.post("/api/partner/guides", async (req, res) => {
+    try {
+      const validatedData = insertGuideSchema.parse(req.body);
+      
+      // Ensure the guide belongs to the business making the request
+      if (!validatedData.businessId) {
+        return res.status(400).json({ message: "Business ID is required" });
+      }
+      
+      const newGuide = await storage.createGuide(validatedData);
+      res.status(201).json(newGuide);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error creating partner guide:", error);
+      res.status(500).json({ message: "Failed to create guide" });
+    }
+  });
+
+  // Update partner guide
+  app.put("/api/partner/guides/:id", async (req, res) => {
+    try {
+      const guide = await storage.getGuideById(req.params.id);
+      if (!guide) {
+        return res.status(404).json({ message: "Guide not found" });
+      }
+      
+      // Verify the guide belongs to the business
+      if (guide.businessId !== req.body.businessId) {
+        return res.status(403).json({ message: "Unauthorized to edit this guide" });
+      }
+      
+      const validatedData = insertGuideSchema.parse(req.body);
+      const updatedGuide = await storage.updateGuide(req.params.id, validatedData);
+      res.json(updatedGuide);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error updating partner guide:", error);
+      res.status(500).json({ message: "Failed to update guide" });
+    }
+  });
+
+  // Delete partner guide
+  app.delete("/api/partner/guides/:id", async (req, res) => {
+    try {
+      const guide = await storage.getGuideById(req.params.id);
+      if (!guide) {
+        return res.status(404).json({ message: "Guide not found" });
+      }
+      
+      const deleted = await storage.deleteGuide(req.params.id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting partner guide:", error);
+      res.status(500).json({ message: "Failed to delete guide" });
+    }
+  });
+
+  // Get partner's ad campaigns
+  app.get("/api/ad-campaigns/business/:businessId", async (req, res) => {
+    try {
+      const campaigns = await storage.getAdCampaignsByBusiness(req.params.businessId);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching partner campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch campaigns" });
+    }
+  });
+
+  // Create partner ad campaign
+  app.post("/api/partner/ad-campaigns", async (req, res) => {
+    try {
+      const validatedData = insertAdCampaignSchema.parse(req.body);
+      
+      if (!validatedData.businessId) {
+        return res.status(400).json({ message: "Business ID is required" });
+      }
+      
+      const newCampaign = await storage.createAdCampaign(validatedData);
+      res.status(201).json(newCampaign);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error creating partner campaign:", error);
+      res.status(500).json({ message: "Failed to create campaign" });
+    }
+  });
+
+  // Update partner ad campaign
+  app.put("/api/partner/ad-campaigns/:id", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaign = await storage.getAdCampaignById(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      
+      // Verify the campaign belongs to the business
+      if (campaign.businessId !== req.body.businessId) {
+        return res.status(403).json({ message: "Unauthorized to edit this campaign" });
+      }
+      
+      const validatedData = insertAdCampaignSchema.partial().parse(req.body);
+      const updatedCampaign = await storage.updateAdCampaign(campaignId, validatedData);
+      res.json(updatedCampaign);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      console.error("Error updating partner campaign:", error);
+      res.status(500).json({ message: "Failed to update campaign" });
+    }
+  });
+
+  // Toggle campaign status
+  app.put("/api/partner/ad-campaigns/:id/status", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const { isActive } = req.body;
+      
+      const campaign = await storage.getAdCampaignById(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      
+      const updatedCampaign = await storage.updateAdCampaign(campaignId, { isActive });
+      res.json(updatedCampaign);
+    } catch (error) {
+      console.error("Error toggling campaign status:", error);
+      res.status(500).json({ message: "Failed to update campaign status" });
+    }
+  });
+
+  // Delete partner ad campaign
+  app.delete("/api/partner/ad-campaigns/:id", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaign = await storage.getAdCampaignById(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      
+      const deleted = await storage.deleteAdCampaign(campaignId);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting partner campaign:", error);
+      res.status(500).json({ message: "Failed to delete campaign" });
+    }
+  });
+
+  // Get partner analytics
+  app.get("/api/analytics/business/:businessId", async (req, res) => {
+    try {
+      const { start, end } = req.query;
+      
+      let filters: any = {
+        entityType: undefined,
+        entityId: undefined,
+        startDate: start ? new Date(start as string) : undefined,
+        endDate: end ? new Date(end as string) : undefined
+      };
+      
+      // Get all guides and campaigns for this business
+      const guides = await storage.getPartnerGuides(req.params.businessId);
+      const campaigns = await storage.getAdCampaignsByBusiness(req.params.businessId);
+      
+      // Get analytics for all partner content
+      const guideIds = guides.map(g => g.id);
+      const campaignIds = campaigns.map(c => c.id.toString());
+      
+      // Fetch analytics events
+      const allEvents: any[] = [];
+      
+      // Get guide analytics
+      for (const guideId of guideIds) {
+        const events = await storage.getAnalyticsEvents({
+          ...filters,
+          entityType: 'guide',
+          entityId: guideId
+        });
+        allEvents.push(...events);
+      }
+      
+      // Get campaign analytics
+      for (const campaignId of campaignIds) {
+        const events = await storage.getAnalyticsEvents({
+          ...filters,
+          entityType: 'ad_campaign',
+          entityId: campaignId
+        });
+        allEvents.push(...events);
+      }
+      
+      res.json(allEvents);
+    } catch (error) {
+      console.error("Error fetching partner analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Update partner business profile
+  app.put("/api/partner/business/:id", async (req, res) => {
+    try {
+      const business = await storage.getBusinessById(req.params.id);
+      if (!business) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+      
+      // Only allow updating certain fields
+      const allowedFields = ['name', 'description', 'phone', 'website', 'logoUrl', 'address', 'contactPerson'];
+      const updateData: any = {};
+      
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      }
+      
+      // Keep the email unchanged for security
+      updateData.email = business.email;
+      
+      const updatedBusiness = await storage.updateBusiness(req.params.id, updateData);
+      res.json(updatedBusiness);
+    } catch (error) {
+      console.error("Error updating partner business:", error);
+      res.status(500).json({ message: "Failed to update business profile" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

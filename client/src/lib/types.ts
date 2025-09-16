@@ -11,6 +11,7 @@ export interface Guide {
   categoryId: string;
   subcategoryId?: string | null;
   title: string;
+  subtitle?: string;
   excerpt: string;
   content: string;
   order?: number | null;
@@ -18,7 +19,9 @@ export interface Guide {
   type?: string | null; // 'resort' | 'partner' | 'sponsored'
   businessId?: string | null;
   isPremium?: boolean | null;
+  isActive?: boolean | null;
   impressions?: number | null;
+  clicks?: number | null;
   clickCount?: number | null;
   validUntil?: string | null;
   adTier?: string | null; // 'basic' | 'standard' | 'premium'
@@ -87,6 +90,7 @@ export interface AnalyticsEvent {
   entityId: string;
   sessionId?: string | null;
   metadata?: any;
+  timestamp?: Date | null;
   createdAt?: Date | null;
 }
 
