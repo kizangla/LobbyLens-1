@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Category, Guide } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import BusinessGuideCard from '@/components/BusinessGuideCard';
 import { useTranslation } from '@/lib/i18n';
 import { useQuery } from '@tanstack/react-query';
+import { useImpressionTracker } from '@/hooks/useAnalytics';
+import { useAnalyticsContext } from '@/components/AnalyticsProvider';
 import type { Business } from '@shared/schema';
 
 interface GuideGridProps {
@@ -14,6 +16,7 @@ interface GuideGridProps {
 
 export default function GuideGrid({ category, guides, onSelectGuide }: GuideGridProps) {
   const { t } = useTranslation();
+  const { trackClick } = useAnalyticsContext();
   
   // Fetch businesses data to get business names for sponsored guides
   const { data: businesses = [] } = useQuery<Business[]>({
@@ -69,6 +72,29 @@ export default function GuideGrid({ category, guides, onSelectGuide }: GuideGrid
     return mixed;
   }, [guides]);
   
+  // Handle guide click with tracking
+  const handleGuideClick = useCallback((guide: Guide, index: number) => {
+    const businessName = guide.businessId 
+      ? businesses.find(b => b.id === guide.businessId)?.name 
+      : undefined;
+    
+    // Track guide click with comprehensive metadata
+    trackClick('guide', guide.id, {
+      guideTitle: guide.title,
+      guideType: guide.type,
+      categoryId: category.id,
+      categoryName: category.name,
+      businessId: guide.businessId,
+      businessName: businessName,
+      isPremium: guide.isPremium,
+      adTier: guide.adTier,
+      position: index + 1,
+      totalGuides: sortedGuides.length
+    });
+    
+    onSelectGuide(guide.id);
+  }, [category, businesses, sortedGuides, onSelectGuide, trackClick]);
+  
   if (!guides.length) {
     return (
       <div className="text-center py-10">
@@ -86,7 +112,7 @@ export default function GuideGrid({ category, guides, onSelectGuide }: GuideGrid
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sortedGuides.map((guide) => {
+        {sortedGuides.map((guide, index) => {
           // Get business name if guide has businessId
           const businessName = guide.businessId 
             ? businesses.find(b => b.id === guide.businessId)?.name 
@@ -95,31 +121,107 @@ export default function GuideGrid({ category, guides, onSelectGuide }: GuideGrid
           // Use BusinessGuideCard for partner/sponsored guides
           if (guide.type === 'partner' || guide.type === 'sponsored' || guide.isPremium || guide.adTier) {
             return (
-              <BusinessGuideCard
+              <TrackableBusinessGuideCard
                 key={guide.id}
                 guide={guide}
-                onClick={() => onSelectGuide(guide.id)}
+                category={category}
                 businessName={businessName}
+                index={index}
+                onClick={() => handleGuideClick(guide, index)}
               />
             );
           }
           
           // Use regular Card for resort guides
           return (
-            <Card 
+            <TrackableGuideCard
               key={guide.id}
-              className="guide-card bg-white rounded-xl shadow-md overflow-hidden card-transition cursor-pointer"
-              onClick={() => onSelectGuide(guide.id)}
-              data-testid={`guide-card-${guide.id}`}
-            >
-              <CardContent className={`p-6 border-t-4 border-${category.id}`}>
-                <h3 className="text-xl font-poppins font-semibold mb-2">{guide.title}</h3>
-                <p className="text-gray-600 line-clamp-3">{guide.excerpt}</p>
-              </CardContent>
-            </Card>
+              guide={guide}
+              category={category}
+              index={index}
+              onClick={() => handleGuideClick(guide, index)}
+            />
           );
         })}
       </div>
     </div>
+  );
+}
+
+// Trackable wrapper for BusinessGuideCard
+interface TrackableBusinessGuideCardProps {
+  guide: Guide;
+  category: Category;
+  businessName?: string;
+  index: number;
+  onClick: () => void;
+}
+
+function TrackableBusinessGuideCard({ guide, category, businessName, index, onClick }: TrackableBusinessGuideCardProps) {
+  // Track impressions for business guide cards
+  const impressionRef = useImpressionTracker('guide', guide.id, {
+    threshold: 0.5,
+    minDuration: 1000,
+    metadata: {
+      guideType: 'business',
+      guideTitle: guide.title,
+      categoryId: category.id,
+      categoryName: category.name,
+      businessName: businessName,
+      isPremium: guide.isPremium,
+      adTier: guide.adTier,
+      position: index + 1
+    }
+  });
+  
+  return (
+    <div ref={impressionRef as React.RefObject<HTMLDivElement>}>
+      <BusinessGuideCard
+        guide={guide}
+        onClick={onClick}
+        businessName={businessName}
+      />
+    </div>
+  );
+}
+
+// Trackable wrapper for regular guide cards
+interface TrackableGuideCardProps {
+  guide: Guide;
+  category: Category;
+  index: number;
+  onClick: () => void;
+}
+
+function TrackableGuideCard({ guide, category, index, onClick }: TrackableGuideCardProps) {
+  // Track impressions for regular guide cards
+  const impressionRef = useImpressionTracker('guide', guide.id, {
+    threshold: 0.5,
+    minDuration: 1000,
+    metadata: {
+      guideType: 'resort',
+      guideTitle: guide.title,
+      categoryId: category.id,
+      categoryName: category.name,
+      position: index + 1
+    }
+  });
+  
+  return (
+    <Card 
+      ref={impressionRef as React.RefObject<HTMLDivElement>}
+      key={guide.id}
+      className="guide-card bg-white rounded-xl shadow-md overflow-hidden card-transition cursor-pointer"
+      onClick={onClick}
+      data-testid={`guide-card-${guide.id}`}
+      data-analytics-guide={guide.id}
+      data-analytics-title={guide.title}
+      data-analytics-category={category.id}
+    >
+      <CardContent className={`p-6 border-t-4 border-${category.id}`}>
+        <h3 className="text-xl font-poppins font-semibold mb-2">{guide.title}</h3>
+        <p className="text-gray-600 line-clamp-3">{guide.excerpt}</p>
+      </CardContent>
+    </Card>
   );
 }

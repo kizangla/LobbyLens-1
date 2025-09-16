@@ -128,11 +128,13 @@ export function useAnalytics() {
 export function useImpressionTracker(
   entityType: string,
   entityId: string,
-  options?: IntersectionObserverInit
+  options?: IntersectionObserverInit & { minDuration?: number; metadata?: any }
 ) {
   const { trackImpression } = useAnalytics();
   const hasTracked = useRef(false);
   const elementRef = useRef<HTMLElement>(null);
+  const visibilityTimer = useRef<NodeJS.Timeout | null>(null);
+  const { minDuration = 1000, metadata, ...observerOptions } = options || {};
 
   useEffect(() => {
     if (!elementRef.current || hasTracked.current) return;
@@ -140,22 +142,44 @@ export function useImpressionTracker(
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasTracked.current) {
-          hasTracked.current = true;
-          trackImpression(entityType, entityId);
+          // Start timer when element becomes visible
+          visibilityTimer.current = setTimeout(() => {
+            if (!hasTracked.current) {
+              hasTracked.current = true;
+              trackImpression(entityType, entityId, metadata);
+              
+              // Store in session to prevent duplicate tracking
+              const impressionKey = `imp_${entityType}_${entityId}`;
+              sessionStorage.setItem(impressionKey, 'true');
+            }
+          }, minDuration);
+        } else if (!entry.isIntersecting && visibilityTimer.current) {
+          // Clear timer if element becomes invisible before minDuration
+          clearTimeout(visibilityTimer.current);
+          visibilityTimer.current = null;
         }
       },
       {
         threshold: 0.5,
-        ...options,
+        ...observerOptions,
       }
     );
 
-    observer.observe(elementRef.current);
+    // Check if already tracked in this session
+    const impressionKey = `imp_${entityType}_${entityId}`;
+    if (sessionStorage.getItem(impressionKey) === 'true') {
+      hasTracked.current = true;
+    } else {
+      observer.observe(elementRef.current);
+    }
 
     return () => {
       observer.disconnect();
+      if (visibilityTimer.current) {
+        clearTimeout(visibilityTimer.current);
+      }
     };
-  }, [entityType, entityId, trackImpression]);
+  }, [entityType, entityId, trackImpression, minDuration, metadata]);
 
   return elementRef;
 }

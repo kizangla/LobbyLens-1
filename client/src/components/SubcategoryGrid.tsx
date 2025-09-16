@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import AdPlacement from '@/components/AdPlacement';
 import { Category, Subcategory } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { useImpressionTracker } from '@/hooks/useAnalytics';
+import { useAnalyticsContext } from '@/components/AnalyticsProvider';
 import { Loader2 } from 'lucide-react';
 
 interface SubcategoryGridProps {
@@ -14,7 +15,7 @@ interface SubcategoryGridProps {
 
 export default function SubcategoryGrid({ category, onSelectSubcategory }: SubcategoryGridProps) {
   const { t } = useTranslation();
-  const { trackView } = useAnalytics();
+  const { trackView, trackClick } = useAnalyticsContext();
   const [buttonColor, setButtonColor] = useState("bg-blue-100");
   
   // Fetch subcategories from the API
@@ -51,9 +52,27 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
   // Track category view
   useEffect(() => {
     if (category) {
-      trackView('category', category.id);
+      trackView('category', category.id, {
+        categoryName: category.name,
+        hasSubcategories: subcategories.length > 0,
+        subcategoryCount: subcategories.length
+      });
     }
-  }, [category, trackView]);
+  }, [category, trackView, subcategories]);
+  
+  // Handle subcategory click with tracking
+  const handleSubcategoryClick = useCallback((subcategory: Subcategory, index: number) => {
+    // Track subcategory click
+    trackClick('subcategory', subcategory.id, {
+      subcategoryName: subcategory.name,
+      categoryId: category.id,
+      categoryName: category.name,
+      position: index + 1,
+      totalSubcategories: subcategories.length
+    });
+    
+    onSelectSubcategory(subcategory.id);
+  }, [category, subcategories, onSelectSubcategory, trackClick]);
   
   if (isLoading) {
     return (
@@ -87,17 +106,57 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
       />
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-        {subcategories.map((subcategory) => (
-          <Button
+        {subcategories.map((subcategory, index) => (
+          <SubcategoryButton
             key={subcategory.id}
-            variant="outline"
-            className={`h-20 ${buttonColor} hover:opacity-90 border-0 text-black font-semibold flex items-center justify-center px-2 py-3 text-center text-sm`}
-            onClick={() => onSelectSubcategory(subcategory.id)}
-          >
-            {subcategory.name}
-          </Button>
+            subcategory={subcategory}
+            category={category}
+            buttonColor={buttonColor}
+            index={index}
+            onClick={() => handleSubcategoryClick(subcategory, index)}
+          />
         ))}
       </div>
     </div>
+  );
+}
+
+// Separate component for subcategory buttons to handle impression tracking
+interface SubcategoryButtonProps {
+  subcategory: Subcategory;
+  category: Category;
+  buttonColor: string;
+  index: number;
+  onClick: () => void;
+}
+
+function SubcategoryButton({ subcategory, category, buttonColor, index, onClick }: SubcategoryButtonProps) {
+  // Track impressions for each subcategory button
+  const impressionRef = useImpressionTracker('subcategory', subcategory.id, {
+    threshold: 0.5,
+    minDuration: 500, // Lower duration for buttons since they're smaller
+    metadata: {
+      subcategoryName: subcategory.name,
+      categoryId: category.id,
+      categoryName: category.name,
+      position: index + 1,
+      buttonStyle: buttonColor
+    }
+  });
+  
+  return (
+    <Button
+      ref={impressionRef as React.RefObject<HTMLButtonElement>}
+      key={subcategory.id}
+      variant="outline"
+      className={`h-20 ${buttonColor} hover:opacity-90 border-0 text-black font-semibold flex items-center justify-center px-2 py-3 text-center text-sm`}
+      onClick={onClick}
+      data-testid={`subcategory-button-${subcategory.id}`}
+      data-analytics-subcategory={subcategory.id}
+      data-analytics-name={subcategory.name}
+      data-analytics-category={category.id}
+    >
+      {subcategory.name}
+    </Button>
   );
 }
