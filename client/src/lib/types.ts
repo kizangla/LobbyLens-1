@@ -13,7 +13,15 @@ export interface Guide {
   title: string;
   excerpt: string;
   content: string;
-  order?: number;
+  order?: number | null;
+  // Advertising/monetization fields
+  type?: string | null; // 'resort' | 'partner' | 'sponsored'
+  businessId?: string | null;
+  isPremium?: boolean | null;
+  impressions?: number | null;
+  clickCount?: number | null;
+  validUntil?: string | null;
+  adTier?: string | null; // 'basic' | 'standard' | 'premium'
 }
 
 export interface SearchResult extends Guide {

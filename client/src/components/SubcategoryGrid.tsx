@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
+import AdPlacement from '@/components/AdPlacement';
 import { Category, Subcategory } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { Loader2 } from 'lucide-react';
 
 interface SubcategoryGridProps {
@@ -12,6 +14,7 @@ interface SubcategoryGridProps {
 
 export default function SubcategoryGrid({ category, onSelectSubcategory }: SubcategoryGridProps) {
   const { t } = useTranslation();
+  const { trackView } = useAnalytics();
   const [buttonColor, setButtonColor] = useState("bg-blue-100");
   
   // Fetch subcategories from the API
@@ -45,6 +48,13 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
     }
   }, [category]);
   
+  // Track category view
+  useEffect(() => {
+    if (category) {
+      trackView('category', category.id);
+    }
+  }, [category, trackView]);
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -68,6 +78,13 @@ export default function SubcategoryGrid({ category, onSelectSubcategory }: Subca
         <h2 className="text-3xl font-bold mb-2">{category.name}</h2>
         <p className="text-xl text-gray-600">{category.description}</p>
       </div>
+      
+      {/* Category-specific ad placement */}
+      <AdPlacement 
+        slotType="category_a4" 
+        categoryId={category.id}
+        className="mb-8 max-w-sm mx-auto md:float-right md:ml-8 md:mb-4"
+      />
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
         {subcategories.map((subcategory) => (

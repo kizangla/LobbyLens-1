@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -7,14 +7,19 @@ import SearchResults from '@/components/SearchResults';
 import GuideModal from '@/components/GuideModal';
 import SubcategoryGrid from '@/components/SubcategoryGrid';
 import SubcategoryView from '@/components/SubcategoryView';
+import PremiumAdBanner from '@/components/PremiumAdBanner';
+import AdPlacement from '@/components/AdPlacement';
 import useSubcategoryNavigation from '@/hooks/useSubcategoryNavigation';
 import useSearch from '@/hooks/useSearch';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTranslation } from '@/lib/i18n';
 import { SearchResult } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
   const { t } = useTranslation();
+  const { trackView } = useAnalytics();
+  const [showPremiumAd, setShowPremiumAd] = useState(true);
   
   // Navigation state and handlers
   const {
@@ -80,9 +85,22 @@ export default function Home() {
       goToHome();
     }
   };
+  
+  // Track page views
+  useEffect(() => {
+    trackView('page', currentView === 'home' ? 'home' : currentView);
+  }, [currentView, trackView]);
 
   return (
     <div className="app-container">
+      {/* Premium Ad Banner - only show on home view */}
+      {currentView === 'home' && showPremiumAd && (
+        <PremiumAdBanner 
+          slotId="homepage_premium"
+          rotationInterval={8000}
+        />
+      )}
+      
       <Header 
         onBackClick={handleBackClick} 
         showBackButton={showBackButton}
@@ -97,18 +115,29 @@ export default function Home() {
           </div>
         )}
         
-        {/* Home view - Categories Grid */}
+        {/* Home view - Categories Grid with Ad Placement */}
         {currentView === 'home' && (
-          categoriesLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <>
+            {/* Homepage A4 Ad Placement */}
+            <div className="mb-8">
+              <AdPlacement 
+                slotType="homepage_a4"
+                className="max-w-md mx-auto lg:float-right lg:ml-8 lg:mb-4"
+              />
             </div>
-          ) : (
-            <CategoryGrid 
-              categories={categories} 
-              onSelectCategory={selectCategory} 
-            />
-          )
+            
+            {/* Categories Grid */}
+            {categoriesLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              </div>
+            ) : (
+              <CategoryGrid 
+                categories={categories} 
+                onSelectCategory={selectCategory} 
+              />
+            )}
+          </>
         )}
         
         {/* Category view - Subcategories Grid */}
