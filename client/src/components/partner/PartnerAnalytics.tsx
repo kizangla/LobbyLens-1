@@ -33,7 +33,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Download, TrendingUp, TrendingDown, Minus, Eye, MousePointer, Target, DollarSign } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Minus, Eye, MousePointer, Target, QrCode, Smartphone, ScanLine } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { Guide, AdCampaign, AnalyticsEvent } from '@/lib/types';
 
@@ -87,12 +87,20 @@ export default function PartnerAnalytics({ businessId }: PartnerAnalyticsProps) 
     enabled: !!businessId,
   });
 
-  // Calculate metrics
+  // Calculate metrics including QR code metrics
   const metrics = useMemo(() => {
     const impressions = analytics.filter(e => e.eventType === 'impression').length;
     const clicks = analytics.filter(e => e.eventType === 'click').length;
     const views = analytics.filter(e => e.eventType === 'view').length;
     const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+
+    // QR Code specific metrics
+    const qrImpressions = analytics.filter(e => e.eventType === 'qr_impression').length;
+    const qrScans = analytics.filter(e => e.eventType === 'qr_scan').length;
+    const qrInteractions = analytics.filter(e => e.eventType === 'qr_interaction').length;
+    const qrProbableScans = analytics.filter(e => e.eventType === 'qr_probable_scan').length;
+    const qrScanRate = qrImpressions > 0 ? (qrScans / qrImpressions) * 100 : 0;
+    const qrEngagementRate = qrImpressions > 0 ? ((qrInteractions + qrScans) / qrImpressions) * 100 : 0;
 
     // Calculate previous period for comparison
     const prevStart = subDays(start, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
@@ -103,12 +111,20 @@ export default function PartnerAnalytics({ businessId }: PartnerAnalyticsProps) 
 
     const prevImpressions = prevAnalytics.filter(e => e.eventType === 'impression').length;
     const prevClicks = prevAnalytics.filter(e => e.eventType === 'click').length;
+    const prevQRImpressions = prevAnalytics.filter(e => e.eventType === 'qr_impression').length;
+    const prevQRScans = prevAnalytics.filter(e => e.eventType === 'qr_scan').length;
 
     const impressionChange = prevImpressions > 0 
       ? ((impressions - prevImpressions) / prevImpressions) * 100 
       : 100;
     const clickChange = prevClicks > 0 
       ? ((clicks - prevClicks) / prevClicks) * 100 
+      : 100;
+    const qrImpressionChange = prevQRImpressions > 0
+      ? ((qrImpressions - prevQRImpressions) / prevQRImpressions) * 100
+      : 100;
+    const qrScanChange = prevQRScans > 0
+      ? ((qrScans - prevQRScans) / prevQRScans) * 100
       : 100;
 
     return {
@@ -118,6 +134,14 @@ export default function PartnerAnalytics({ businessId }: PartnerAnalyticsProps) 
       ctr,
       impressionChange,
       clickChange,
+      qrImpressions,
+      qrScans,
+      qrInteractions,
+      qrProbableScans,
+      qrScanRate,
+      qrEngagementRate,
+      qrImpressionChange,
+      qrScanChange,
     };
   }, [analytics, start, end]);
 
@@ -368,6 +392,97 @@ export default function PartnerAnalytics({ businessId }: PartnerAnalyticsProps) 
                 {metrics.views.toLocaleString()}
               </div>
               <Eye className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* QR Code Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              QR Impressions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold" data-testid="text-qr-impressions">
+                  {metrics.qrImpressions.toLocaleString()}
+                </div>
+                <div className="flex items-center mt-1 text-sm">
+                  {getChangeIcon(metrics.qrImpressionChange)}
+                  <span className={`ml-1 ${
+                    metrics.qrImpressionChange > 0 ? 'text-green-500' : 
+                    metrics.qrImpressionChange < 0 ? 'text-red-500' : 
+                    'text-gray-500'
+                  }`}>
+                    {Math.abs(metrics.qrImpressionChange).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              <QrCode className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              QR Scans
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold" data-testid="text-qr-scans">
+                  {metrics.qrScans.toLocaleString()}
+                </div>
+                <div className="flex items-center mt-1 text-sm">
+                  {getChangeIcon(metrics.qrScanChange)}
+                  <span className={`ml-1 ${
+                    metrics.qrScanChange > 0 ? 'text-green-500' : 
+                    metrics.qrScanChange < 0 ? 'text-red-500' : 
+                    'text-gray-500'
+                  }`}>
+                    {Math.abs(metrics.qrScanChange).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              <ScanLine className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              QR Scan Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold" data-testid="text-qr-scan-rate">
+                {metrics.qrScanRate.toFixed(2)}%
+              </div>
+              <Smartphone className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              QR Engagement
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold" data-testid="text-qr-engagement">
+                {metrics.qrEngagementRate.toFixed(1)}%
+              </div>
+              <Target className="h-5 w-5 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>

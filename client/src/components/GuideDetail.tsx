@@ -7,11 +7,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { QrCode, Maximize2 } from 'lucide-react';
 import { Guide, Category } from '@/lib/types';
 import { useTranslation } from '@/lib/i18n';
 import { useAnalyticsContext } from '@/components/AnalyticsProvider';
 import { ScrollDepthTracker, EngagementTimer } from '@/utils/analyticsHelpers';
-import QRCode from 'react-qr-code';
+import DynamicQRCode from '@/components/DynamicQRCode';
+import QRCodeModal from '@/components/QRCodeModal';
+import { generateQRCodeData } from '@/utils/qrHelpers';
 
 // Content section types
 export type ContentSection = {
@@ -30,6 +34,7 @@ interface GuideDetailProps {
 export default function GuideDetail({ guide, category, onBack }: GuideDetailProps) {
   const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState(0);
+  const [showQRModal, setShowQRModal] = useState(false);
   const { trackEvent, trackClick, trackView, trackScrollDepth } = useAnalyticsContext();
   const scrollDepthTrackerRef = useRef<ScrollDepthTracker | null>(null);
   const engagementTimerRef = useRef<EngagementTimer | null>(null);
@@ -40,8 +45,21 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
     ? JSON.parse(guide.content) 
     : [{ id: '1', type: 'text', content: guide.excerpt, title: guide.title }];
   
-  // Generate QR code value (could be website URL, contact info, etc.)
-  const qrValue = `https://lobby-app.com/guides/${guide.id}`;
+  // Generate QR code URL with tracking parameters
+  const baseUrl = `${window.location.origin}/guides/${guide.id}`;
+  const qrMetadata = {
+    type: 'guide' as const,
+    entityId: guide.id,
+    categoryId: category?.id,
+    title: guide.title,
+    description: guide.excerpt,
+    businessId: guide.businessId ?? undefined
+  };
+  const qrCodeData = generateQRCodeData(baseUrl, qrMetadata, {
+    utm_campaign: `guide_${guide.id}`,
+    utm_content: guide.title.substring(0, 50)
+  });
+  const qrValue = qrCodeData.shortUrl || qrCodeData.trackingUrl;
   
   // Menu items (either from guide content or defaults)
   const menuItems = [
@@ -134,13 +152,15 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
     });
   }, [guide, trackClick]);
   
-  // Track QR code interactions
-  const handleQRInteraction = useCallback(() => {
-    trackEvent('qr_code_view', 'guide', guide.id, {
+  // Track QR code expand
+  const handleQRExpand = useCallback(() => {
+    setShowQRModal(true);
+    trackEvent('qr_expand_click', 'guide', guide.id, {
       guideTitle: guide.title,
-      qrUrl: qrValue
+      qrUrl: qrValue,
+      categoryId: category?.id
     });
-  }, [guide, trackEvent, qrValue]);
+  }, [guide, trackEvent, qrValue, category]);
   
   // Track back button click
   const handleBack = useCallback(() => {
@@ -277,18 +297,33 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
             </ul>
           </div>
           
-          {/* QR Code */}
-          <div 
-            className="qr-container mt-auto flex flex-col items-center"
-            onMouseEnter={handleQRInteraction}
-            data-testid="qr-code-container"
-          >
-            <div className="bg-white p-4 rounded-lg">
-              <QRCode value={qrValue} size={160} />
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              {t('Scan to learn more')}
-            </p>
+          {/* Enhanced QR Code with tracking */}
+          <div className="qr-container mt-auto flex flex-col items-center space-y-4">
+            <DynamicQRCode
+              value={qrValue}
+              size={200}
+              trackingId={guide.id}
+              trackingType="guide"
+              metadata={qrMetadata}
+              instruction={t('Scan to save this guide')}
+              showActions={true}
+              onExpand={handleQRExpand}
+              showFrame={true}
+              animate={true}
+              errorCorrectionLevel="H"
+            />
+            
+            {/* Additional QR actions */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleQRExpand}
+              className="w-full max-w-[200px]"
+              data-testid="view-qr-fullscreen"
+            >
+              <Maximize2 className="h-4 w-4 mr-2" />
+              View Fullscreen QR
+            </Button>
           </div>
         </div>
       </div>
@@ -303,6 +338,20 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
           {t('Back')}
         </button>
       </div>
+      
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        url={qrValue}
+        title={guide.title}
+        description={`${guide.excerpt.substring(0, 100)}...`}
+        trackingId={guide.id}
+        trackingType="guide"
+        metadata={qrMetadata}
+        instruction="Scan with your phone to save this guide"
+        businessName={category?.name}
+      />
     </div>
   );
 }

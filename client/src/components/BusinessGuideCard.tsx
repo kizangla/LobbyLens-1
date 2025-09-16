@@ -1,11 +1,15 @@
 import { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Star, Building2, TrendingUp } from 'lucide-react';
+import { Star, Building2, TrendingUp, QrCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTrackGuideClick } from '@/hooks/useAdCampaigns';
 import { useImpressionTracker, useAnalytics } from '@/hooks/useAnalytics';
+import DynamicQRCode from '@/components/DynamicQRCode';
+import QRCodeModal from '@/components/QRCodeModal';
+import { generateQRCodeData } from '@/utils/qrHelpers';
 import type { Guide } from '@/lib/types';
 
 interface BusinessGuideCardProps {
@@ -22,6 +26,8 @@ export default function BusinessGuideCard({
   className 
 }: BusinessGuideCardProps) {
   const [hasTrackedImpression, setHasTrackedImpression] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const trackGuideClick = useTrackGuideClick();
   const { trackImpression, trackClick } = useAnalytics();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -51,8 +57,29 @@ export default function BusinessGuideCard({
     }
   }, [guide.id, guide.type, guide.businessId, guide.adTier, hasTrackedImpression, trackImpression]);
 
+  // Generate QR code data
+  const baseUrl = `${window.location.origin}/guides/${guide.id}`;
+  const qrMetadata = {
+    type: 'business' as const,
+    entityId: guide.id,
+    businessId: guide.businessId ?? undefined,
+    title: guide.title,
+    description: guide.excerpt
+  };
+  const qrCodeData = generateQRCodeData(baseUrl, qrMetadata, {
+    utm_source: 'qr_code',
+    utm_medium: 'business_card',
+    utm_campaign: `business_${guide.businessId || guide.id}`
+  });
+  const qrUrl = qrCodeData.shortUrl || qrCodeData.trackingUrl;
+
   // Handle click with analytics tracking
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking QR elements
+    if ((e.target as HTMLElement).closest('.qr-code-section')) {
+      return;
+    }
+
     // Track click for analytics
     trackClick('guide', guide.id, {
       type: guide.type,
@@ -65,6 +92,28 @@ export default function BusinessGuideCard({
 
     // Call the original onClick handler
     onClick();
+  };
+
+  // Handle QR code display toggle
+  const handleToggleQR = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowQRCode(!showQRCode);
+    if (!showQRCode) {
+      trackClick('qr_toggle', guide.id, {
+        type: guide.type,
+        businessId: guide.businessId
+      });
+    }
+  };
+
+  // Handle QR modal open
+  const handleQRModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowQRModal(true);
+    trackClick('qr_modal_open', guide.id, {
+      type: guide.type,
+      businessId: guide.businessId
+    });
   };
 
   // Determine badge type and styling based on guide type and tier
@@ -169,8 +218,8 @@ export default function BusinessGuideCard({
             {guide.excerpt}
           </p>
 
-          {/* Call to action */}
-          <div className="flex items-center justify-between">
+          {/* Call to action and QR code */}
+          <div className="flex items-center justify-between mb-3">
             <span 
               className={cn(
                 "text-sm font-medium",
@@ -180,6 +229,20 @@ export default function BusinessGuideCard({
               Learn more →
             </span>
             
+            {/* QR Code button for premium/partner guides */}
+            {(isPremium || guide.type === 'partner') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleQR}
+                className="qr-code-section"
+                data-testid={`qr-toggle-${guide.id}`}
+              >
+                <QrCode className="h-4 w-4 mr-1" />
+                QR Code
+              </Button>
+            )}
+            
             {/* Valid until date for campaigns */}
             {guide.validUntil && (
               <span className="text-xs text-muted-foreground">
@@ -187,6 +250,40 @@ export default function BusinessGuideCard({
               </span>
             )}
           </div>
+
+          {/* QR Code section (collapsible) */}
+          {showQRCode && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="qr-code-section border-t pt-3 mt-3"
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <DynamicQRCode
+                  value={qrUrl}
+                  size={120}
+                  trackingId={`${guide.id}_card`}
+                  trackingType="business"
+                  metadata={qrMetadata}
+                  instruction="Scan to visit"
+                  showActions={false}
+                  onExpand={() => setShowQRModal(true)}
+                  showFrame={false}
+                  animate={false}
+                />
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={handleQRModal}
+                  className="text-xs"
+                  data-testid={`qr-expand-${guide.id}`}
+                >
+                  View larger
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Premium shimmer effect */}
           {isPremium && (
@@ -217,6 +314,20 @@ export default function BusinessGuideCard({
           </>
         )}
       </Card>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        url={qrUrl}
+        title={guide.title}
+        description={guide.excerpt}
+        trackingId={guide.id}
+        trackingType="business"
+        metadata={qrMetadata}
+        instruction="Scan to view guide"
+        businessName={businessName}
+      />
     </motion.div>
   );
 }
