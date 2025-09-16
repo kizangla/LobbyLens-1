@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import ContentEditor from '@/components/ContentEditor';
+import { ScreensaverSettings } from '@/components/ScreensaverSettings';
 import {
   Table,
   TableBody,
@@ -2511,13 +2512,14 @@ export default function AdminPanel() {
       <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
       
       <Tabs defaultValue="categories" onValueChange={setActiveTab}>
-        <TabsList className="mb-8 grid w-full grid-cols-6 lg:w-auto">
+        <TabsList className="mb-8 grid w-full grid-cols-7 lg:w-auto">
           <TabsTrigger value="categories" data-testid="tab-categories">Categories</TabsTrigger>
           <TabsTrigger value="subcategories" data-testid="tab-subcategories">Subcategories</TabsTrigger>
           <TabsTrigger value="guides" data-testid="tab-guides">Guides</TabsTrigger>
           <TabsTrigger value="partners" data-testid="tab-partners">Partners</TabsTrigger>
           <TabsTrigger value="campaigns" data-testid="tab-campaigns">Ad Campaigns</TabsTrigger>
           <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="screensaver" data-testid="tab-screensaver">Screensaver</TabsTrigger>
         </TabsList>
         
         <TabsContent value="categories">
@@ -2542,6 +2544,10 @@ export default function AdminPanel() {
 
         <TabsContent value="analytics">
           <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="screensaver">
+          <ScreensaverSettings />
         </TabsContent>
       </Tabs>
     </div>
