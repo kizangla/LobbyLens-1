@@ -2,10 +2,15 @@ import {
   users, type User, type InsertUser,
   categories, type Category, type InsertCategory,
   subcategories, type Subcategory, type InsertSubcategory,
-  guides, type Guide, type InsertGuide
+  guides, type Guide, type InsertGuide,
+  businesses, type Business, type InsertBusiness,
+  adCampaigns, type AdCampaign, type InsertAdCampaign,
+  analyticsEvents, type AnalyticsEvent, type InsertAnalyticsEvent,
+  adSlots, type AdSlot, type InsertAdSlot,
+  userSessions, type UserSession, type InsertUserSession
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, or, asc } from "drizzle-orm";
+import { eq, like, or, asc, desc, and, gte, lte, sql } from "drizzle-orm";
 
 // Storage interface
 export interface IStorage {
@@ -39,6 +44,49 @@ export interface IStorage {
   
   // Search methods
   searchGuides(query: string): Promise<Array<Guide & { categoryName: string }>>;
+  
+  // Enhanced Guide Operations
+  getGuidesByType(type: string): Promise<Guide[]>;
+  getPartnerGuides(businessId: string): Promise<Guide[]>;
+  incrementGuideImpressions(id: string): Promise<void>;
+  incrementGuideClicks(id: string): Promise<void>;
+  getGuideAnalytics(id: string): Promise<{impressions: number, clicks: number, ctr: number}>;  
+  
+  // Business Operations
+  createBusiness(business: InsertBusiness): Promise<Business>;
+  getBusinessById(id: string): Promise<Business | undefined>;
+  getAllBusinesses(): Promise<Business[]>;
+  updateBusiness(id: string, business: Partial<InsertBusiness>): Promise<Business | undefined>;
+  deleteBusiness(id: string): Promise<boolean>;
+  getBusinessesByTier(tier: string): Promise<Business[]>;
+  
+  // Ad Campaign Operations
+  createAdCampaign(campaign: InsertAdCampaign): Promise<AdCampaign>;
+  getAdCampaignById(id: number): Promise<AdCampaign | undefined>;
+  getActiveAdCampaigns(): Promise<AdCampaign[]>;
+  getAdCampaignsByBusiness(businessId: string): Promise<AdCampaign[]>;
+  updateAdCampaign(id: number, campaign: Partial<InsertAdCampaign>): Promise<AdCampaign | undefined>;
+  deleteAdCampaign(id: number): Promise<boolean>;
+  incrementAdImpressions(id: number): Promise<void>;
+  incrementAdClicks(id: number): Promise<void>;
+  
+  // Analytics Operations
+  createAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent>;
+  getAnalyticsEvents(filters: {eventType?: string, entityType?: string, entityId?: string, startDate?: Date, endDate?: Date}): Promise<AnalyticsEvent[]>;
+  getAnalyticsSummary(entityType: string, entityId: string): Promise<{views: number, clicks: number, impressions: number}>;
+  
+  // Ad Slot Operations
+  createAdSlot(slot: InsertAdSlot): Promise<AdSlot>;
+  getAdSlotById(id: string): Promise<AdSlot | undefined>;
+  getActiveAdSlots(): Promise<AdSlot[]>;
+  updateAdSlot(id: string, slot: Partial<InsertAdSlot>): Promise<AdSlot | undefined>;
+  deleteAdSlot(id: string): Promise<boolean>;
+  
+  // Session Operations
+  createSession(session: InsertUserSession): Promise<UserSession>;
+  getSessionById(id: string): Promise<UserSession | undefined>;
+  updateSession(id: string, sessionData: any): Promise<UserSession | undefined>;
+  cleanupOldSessions(olderThan: Date): Promise<number>;
   
   // Database initialization
   seedDatabase(): Promise<void>;
@@ -189,7 +237,14 @@ export class DatabaseStorage implements IStorage {
         categoryId: guides.categoryId,
         subcategoryId: guides.subcategoryId,
         order: guides.order,
-        categoryName: categories.name
+        categoryName: categories.name,
+        type: guides.type,
+        businessId: guides.businessId,
+        isPremium: guides.isPremium,
+        impressions: guides.impressions,
+        clickCount: guides.clickCount,
+        validUntil: guides.validUntil,
+        adTier: guides.adTier
       })
       .from(guides)
       .innerJoin(categories, eq(guides.categoryId, categories.id))
@@ -202,6 +257,314 @@ export class DatabaseStorage implements IStorage {
       );
     
     return results;
+  }
+  
+  // Enhanced Guide Operations
+  async getGuidesByType(type: string): Promise<Guide[]> {
+    return await db
+      .select()
+      .from(guides)
+      .where(eq(guides.type, type))
+      .orderBy(asc(guides.order));
+  }
+  
+  async getPartnerGuides(businessId: string): Promise<Guide[]> {
+    return await db
+      .select()
+      .from(guides)
+      .where(eq(guides.businessId, businessId))
+      .orderBy(asc(guides.order));
+  }
+  
+  async incrementGuideImpressions(id: string): Promise<void> {
+    await db
+      .update(guides)
+      .set({ impressions: sql`${guides.impressions} + 1` })
+      .where(eq(guides.id, id));
+  }
+  
+  async incrementGuideClicks(id: string): Promise<void> {
+    await db
+      .update(guides)
+      .set({ clickCount: sql`${guides.clickCount} + 1` })
+      .where(eq(guides.id, id));
+  }
+  
+  async getGuideAnalytics(id: string): Promise<{impressions: number, clicks: number, ctr: number}> {
+    const [guide] = await db
+      .select({
+        impressions: guides.impressions,
+        clickCount: guides.clickCount
+      })
+      .from(guides)
+      .where(eq(guides.id, id));
+      
+    if (!guide) {
+      return { impressions: 0, clicks: 0, ctr: 0 };
+    }
+    
+    const impressions = guide.impressions ?? 0;
+    const clicks = guide.clickCount ?? 0;
+    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+    
+    return {
+      impressions: impressions,
+      clicks: clicks,
+      ctr: parseFloat(ctr.toFixed(2))
+    };
+  }
+  
+  // Business Operations
+  async createBusiness(business: InsertBusiness): Promise<Business> {
+    const [newBusiness] = await db.insert(businesses).values(business).returning();
+    return newBusiness;
+  }
+  
+  async getBusinessById(id: string): Promise<Business | undefined> {
+    const [business] = await db.select().from(businesses).where(eq(businesses.id, id));
+    return business;
+  }
+  
+  async getAllBusinesses(): Promise<Business[]> {
+    return await db.select().from(businesses).orderBy(desc(businesses.createdAt));
+  }
+  
+  async updateBusiness(id: string, business: Partial<InsertBusiness>): Promise<Business | undefined> {
+    const [updatedBusiness] = await db
+      .update(businesses)
+      .set(business)
+      .where(eq(businesses.id, id))
+      .returning();
+    return updatedBusiness;
+  }
+  
+  async deleteBusiness(id: string): Promise<boolean> {
+    // Delete associated ad campaigns first
+    await db.delete(adCampaigns).where(eq(adCampaigns.businessId, id));
+    
+    // Delete associated guides
+    await db.delete(guides).where(eq(guides.businessId, id));
+    
+    const result = await db.delete(businesses).where(eq(businesses.id, id)).returning();
+    return result.length > 0;
+  }
+  
+  async getBusinessesByTier(tier: string): Promise<Business[]> {
+    return await db
+      .select()
+      .from(businesses)
+      .where(eq(businesses.subscriptionTier, tier))
+      .orderBy(desc(businesses.createdAt));
+  }
+  
+  // Ad Campaign Operations
+  async createAdCampaign(campaign: InsertAdCampaign): Promise<AdCampaign> {
+    const [newCampaign] = await db.insert(adCampaigns).values(campaign).returning();
+    return newCampaign;
+  }
+  
+  async getAdCampaignById(id: number): Promise<AdCampaign | undefined> {
+    const [campaign] = await db.select().from(adCampaigns).where(eq(adCampaigns.id, id));
+    return campaign;
+  }
+  
+  async getActiveAdCampaigns(): Promise<AdCampaign[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(adCampaigns)
+      .where(
+        and(
+          eq(adCampaigns.isActive, true),
+          or(
+            sql`${adCampaigns.startDate} IS NULL`,
+            sql`${adCampaigns.startDate} <= ${now}`
+          ),
+          or(
+            sql`${adCampaigns.endDate} IS NULL`,
+            sql`${adCampaigns.endDate} >= ${now}`
+          )
+        )
+      )
+      .orderBy(desc(adCampaigns.priority));
+  }
+  
+  async getAdCampaignsByBusiness(businessId: string): Promise<AdCampaign[]> {
+    return await db
+      .select()
+      .from(adCampaigns)
+      .where(eq(adCampaigns.businessId, businessId))
+      .orderBy(desc(adCampaigns.createdAt));
+  }
+  
+  async updateAdCampaign(id: number, campaign: Partial<InsertAdCampaign>): Promise<AdCampaign | undefined> {
+    const [updatedCampaign] = await db
+      .update(adCampaigns)
+      .set(campaign)
+      .where(eq(adCampaigns.id, id))
+      .returning();
+    return updatedCampaign;
+  }
+  
+  async deleteAdCampaign(id: number): Promise<boolean> {
+    const result = await db.delete(adCampaigns).where(eq(adCampaigns.id, id)).returning();
+    return result.length > 0;
+  }
+  
+  async incrementAdImpressions(id: number): Promise<void> {
+    await db
+      .update(adCampaigns)
+      .set({ impressions: sql`${adCampaigns.impressions} + 1` })
+      .where(eq(adCampaigns.id, id));
+  }
+  
+  async incrementAdClicks(id: number): Promise<void> {
+    await db
+      .update(adCampaigns)
+      .set({ clicks: sql`${adCampaigns.clicks} + 1` })
+      .where(eq(adCampaigns.id, id));
+  }
+  
+  // Analytics Operations
+  async createAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
+    const [newEvent] = await db.insert(analyticsEvents).values(event).returning();
+    return newEvent;
+  }
+  
+  async getAnalyticsEvents(filters: {
+    eventType?: string,
+    entityType?: string,
+    entityId?: string,
+    startDate?: Date,
+    endDate?: Date
+  }): Promise<AnalyticsEvent[]> {
+    const conditions = [];
+    
+    if (filters.eventType) {
+      conditions.push(eq(analyticsEvents.eventType, filters.eventType));
+    }
+    if (filters.entityType) {
+      conditions.push(eq(analyticsEvents.entityType, filters.entityType));
+    }
+    if (filters.entityId) {
+      conditions.push(eq(analyticsEvents.entityId, filters.entityId));
+    }
+    if (filters.startDate) {
+      conditions.push(gte(analyticsEvents.createdAt, filters.startDate));
+    }
+    if (filters.endDate) {
+      conditions.push(lte(analyticsEvents.createdAt, filters.endDate));
+    }
+    
+    if (conditions.length > 0) {
+      return await db
+        .select()
+        .from(analyticsEvents)
+        .where(and(...conditions))
+        .orderBy(desc(analyticsEvents.createdAt));
+    }
+    
+    return await db
+      .select()
+      .from(analyticsEvents)
+      .orderBy(desc(analyticsEvents.createdAt));
+  }
+  
+  async getAnalyticsSummary(entityType: string, entityId: string): Promise<{
+    views: number,
+    clicks: number,
+    impressions: number
+  }> {
+    const events = await this.getAnalyticsEvents({
+      entityType,
+      entityId
+    });
+    
+    const summary = {
+      views: 0,
+      clicks: 0,
+      impressions: 0
+    };
+    
+    events.forEach(event => {
+      switch (event.eventType) {
+        case 'view':
+          summary.views++;
+          break;
+        case 'click':
+          summary.clicks++;
+          break;
+        case 'impression':
+          summary.impressions++;
+          break;
+      }
+    });
+    
+    return summary;
+  }
+  
+  // Ad Slot Operations
+  async createAdSlot(slot: InsertAdSlot): Promise<AdSlot> {
+    const [newSlot] = await db.insert(adSlots).values(slot).returning();
+    return newSlot;
+  }
+  
+  async getAdSlotById(id: string): Promise<AdSlot | undefined> {
+    const [slot] = await db.select().from(adSlots).where(eq(adSlots.id, id));
+    return slot;
+  }
+  
+  async getActiveAdSlots(): Promise<AdSlot[]> {
+    return await db
+      .select()
+      .from(adSlots)
+      .where(eq(adSlots.isActive, true))
+      .orderBy(asc(adSlots.position));
+  }
+  
+  async updateAdSlot(id: string, slot: Partial<InsertAdSlot>): Promise<AdSlot | undefined> {
+    const [updatedSlot] = await db
+      .update(adSlots)
+      .set(slot)
+      .where(eq(adSlots.id, id))
+      .returning();
+    return updatedSlot;
+  }
+  
+  async deleteAdSlot(id: string): Promise<boolean> {
+    const result = await db.delete(adSlots).where(eq(adSlots.id, id)).returning();
+    return result.length > 0;
+  }
+  
+  // Session Operations
+  async createSession(session: InsertUserSession): Promise<UserSession> {
+    const [newSession] = await db.insert(userSessions).values(session).returning();
+    return newSession;
+  }
+  
+  async getSessionById(id: string): Promise<UserSession | undefined> {
+    const [session] = await db.select().from(userSessions).where(eq(userSessions.id, id));
+    return session;
+  }
+  
+  async updateSession(id: string, sessionData: any): Promise<UserSession | undefined> {
+    const [updatedSession] = await db
+      .update(userSessions)
+      .set({ 
+        sessionData,
+        lastActivity: new Date()
+      })
+      .where(eq(userSessions.id, id))
+      .returning();
+    return updatedSession;
+  }
+  
+  async cleanupOldSessions(olderThan: Date): Promise<number> {
+    const result = await db
+      .delete(userSessions)
+      .where(lte(userSessions.lastActivity, olderThan))
+      .returning();
+    return result.length;
   }
   
   async seedDatabase(): Promise<void> {
@@ -392,6 +755,279 @@ export class DatabaseStorage implements IStorage {
         }
         
         for (const guide of cityGuides) {
+          await this.createGuide(guide);
+        }
+        
+        // Add sample businesses
+        const sampleBusinesses: InsertBusiness[] = [
+          {
+            id: "oceanview-resort",
+            name: "Oceanview Resort & Spa",
+            description: "Premier luxury resort offering world-class amenities and services",
+            email: "info@oceanviewresort.com",
+            phone: "+1-555-0100",
+            website: "https://oceanviewresort.com",
+            logoUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200",
+            address: "1 Ocean Drive, Paradise Beach, FL 33101",
+            contactPerson: "John Smith",
+            subscriptionTier: "premium",
+            isActive: true,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+          },
+          {
+            id: "seaside-restaurants",
+            name: "Seaside Restaurant Group",
+            description: "Collection of fine dining establishments along the coast",
+            email: "contact@seasiderestaurants.com",
+            phone: "+1-555-0200",
+            website: "https://seasiderestaurants.com",
+            logoUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&h=200",
+            address: "50 Marina Way, Paradise Beach, FL 33102",
+            contactPerson: "Maria Garcia",
+            subscriptionTier: "standard",
+            isActive: true,
+            expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000) // 6 months from now
+          },
+          {
+            id: "adventure-tours",
+            name: "Adventure Tours Inc",
+            description: "Exciting outdoor adventures and guided tours",
+            email: "booking@adventuretours.com",
+            phone: "+1-555-0300",
+            website: "https://adventuretours.com",
+            logoUrl: "https://images.unsplash.com/photo-1533692328991-08159ff19fca?w=200&h=200",
+            address: "123 Explorer Road, Paradise Beach, FL 33103",
+            contactPerson: "Mike Johnson",
+            subscriptionTier: "basic",
+            isActive: true,
+            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 3 months from now
+          },
+          {
+            id: "paradise-shopping",
+            name: "Paradise Shopping Mall",
+            description: "Premier shopping destination with over 200 stores",
+            email: "info@paradiseshopping.com",
+            phone: "+1-555-0400",
+            website: "https://paradiseshopping.com",
+            logoUrl: "https://images.unsplash.com/photo-1555529669-2269763671c0?w=200&h=200",
+            address: "500 Shopping Blvd, Paradise Beach, FL 33104",
+            contactPerson: "Sarah Lee",
+            subscriptionTier: "premium",
+            isActive: true,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+          }
+        ];
+        
+        // Add businesses to database
+        for (const business of sampleBusinesses) {
+          await this.createBusiness(business);
+        }
+        
+        // Add sample ad campaigns
+        const sampleAdCampaigns: InsertAdCampaign[] = [
+          {
+            businessId: "oceanview-resort",
+            campaignName: "Summer Special Promotion",
+            adType: "fullscreen",
+            mediaUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1920&h=1080",
+            mediaType: "image",
+            targetUrl: "https://oceanviewresort.com/summer-special",
+            isActive: true,
+            priority: 10,
+            dailyBudget: 500,
+            totalBudget: 15000,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          },
+          {
+            businessId: "oceanview-resort",
+            campaignName: "Spa Package Display",
+            adType: "homepage_a4",
+            mediaUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600",
+            mediaType: "image",
+            targetUrl: "https://oceanviewresort.com/spa",
+            isActive: true,
+            priority: 5,
+            dailyBudget: 200,
+            totalBudget: 6000,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            businessId: "seaside-restaurants",
+            campaignName: "Fine Dining Experience",
+            adType: "category_a4",
+            categoryId: "fb-guide",
+            mediaUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600",
+            mediaType: "image",
+            targetUrl: "https://seasiderestaurants.com/menu",
+            isActive: true,
+            priority: 7,
+            dailyBudget: 150,
+            totalBudget: 4500,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            businessId: "adventure-tours",
+            campaignName: "Island Adventure Tours",
+            adType: "category_a4",
+            categoryId: "tour-guide",
+            mediaUrl: "https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=800&h=600",
+            mediaType: "image",
+            targetUrl: "https://adventuretours.com/book",
+            isActive: true,
+            priority: 3,
+            dailyBudget: 100,
+            totalBudget: 3000,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            businessId: "paradise-shopping",
+            campaignName: "Holiday Shopping Extravaganza",
+            adType: "fullscreen",
+            mediaUrl: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=1920&h=1080",
+            mediaType: "image",
+            targetUrl: "https://paradiseshopping.com/holiday-sale",
+            isActive: true,
+            priority: 9,
+            dailyBudget: 300,
+            totalBudget: 9000,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          }
+        ];
+        
+        // Add ad campaigns to database
+        for (const campaign of sampleAdCampaigns) {
+          await this.createAdCampaign(campaign);
+        }
+        
+        // Add sample ad slots
+        const sampleAdSlots: InsertAdSlot[] = [
+          {
+            id: "fullscreen-main",
+            slotName: "Main Fullscreen Ad",
+            slotType: "fullscreen",
+            position: 0,
+            isActive: true,
+            rotationInterval: 10000,
+            maxAds: 5
+          },
+          {
+            id: "homepage-top",
+            slotName: "Homepage Top Banner",
+            slotType: "homepage_a4",
+            position: 1,
+            isActive: true,
+            rotationInterval: 8000,
+            maxAds: 3
+          },
+          {
+            id: "category-fb",
+            slotName: "F&B Category Ad",
+            slotType: "category_a4",
+            categoryId: "fb-guide",
+            position: 0,
+            isActive: true,
+            rotationInterval: 6000,
+            maxAds: 3
+          },
+          {
+            id: "category-tour",
+            slotName: "Tour Category Ad",
+            slotType: "category_a4",
+            categoryId: "tour-guide",
+            position: 0,
+            isActive: true,
+            rotationInterval: 6000,
+            maxAds: 3
+          }
+        ];
+        
+        // Add ad slots to database
+        for (const slot of sampleAdSlots) {
+          await this.createAdSlot(slot);
+        }
+        
+        // Add some partner guides
+        const partnerGuides: InsertGuide[] = [
+          {
+            id: "oceanview-pool-hours",
+            categoryId: "hotel-guide",
+            title: "Pool & Beach Access",
+            excerpt: "Enjoy our infinity pool and private beach facilities",
+            content: `
+              <h3>Pool Hours</h3>
+              <p>Main Pool: 7:00 AM - 10:00 PM daily</p>
+              <p>Adults-Only Pool: 8:00 AM - 8:00 PM</p>
+              <p>Kids Pool: 8:00 AM - 6:00 PM</p>
+              
+              <h3>Beach Access</h3>
+              <p>Our private beach is available 24/7 for hotel guests</p>
+              <p>Beach chairs and umbrellas: 8:00 AM - 6:00 PM</p>
+            `,
+            order: 3,
+            type: "partner",
+            businessId: "oceanview-resort",
+            isPremium: true,
+            adTier: "premium"
+          },
+          {
+            id: "seaside-dining-special",
+            categoryId: "fb-guide",
+            title: "Seaside Fine Dining",
+            excerpt: "Award-winning cuisine with ocean views",
+            content: `
+              <h3>Restaurant Hours</h3>
+              <p>Breakfast: 7:00 AM - 11:00 AM</p>
+              <p>Lunch: 12:00 PM - 3:00 PM</p>
+              <p>Dinner: 6:00 PM - 11:00 PM</p>
+              
+              <h3>Special Features</h3>
+              <ul>
+                <li>Fresh seafood daily</li>
+                <li>Extensive wine selection</li>
+                <li>Vegetarian and vegan options</li>
+                <li>Private dining rooms available</li>
+              </ul>
+            `,
+            order: 1,
+            type: "partner",
+            businessId: "seaside-restaurants",
+            isPremium: true,
+            adTier: "standard"
+          },
+          {
+            id: "adventure-kayak-tours",
+            categoryId: "adventure-guide",
+            title: "Kayak Island Tours",
+            excerpt: "Explore hidden coves and marine life",
+            content: `
+              <h3>Tour Schedule</h3>
+              <p>Morning Tour: 8:00 AM - 11:00 AM</p>
+              <p>Afternoon Tour: 2:00 PM - 5:00 PM</p>
+              <p>Sunset Tour: 5:30 PM - 7:30 PM</p>
+              
+              <h3>What's Included</h3>
+              <ul>
+                <li>Professional guide</li>
+                <li>Kayak and safety equipment</li>
+                <li>Snorkeling gear</li>
+                <li>Light refreshments</li>
+              </ul>
+            `,
+            order: 1,
+            type: "partner",
+            businessId: "adventure-tours",
+            isPremium: false,
+            adTier: "basic"
+          }
+        ];
+        
+        // Add partner guides to database
+        for (const guide of partnerGuides) {
           await this.createGuide(guide);
         }
         
