@@ -910,7 +910,7 @@ function AdCampaignsManager() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Businesses</SelectItem>
-            {businesses.map(business => (
+            {businesses.filter(business => business.id && business.id !== '').map(business => (
               <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
             ))}
           </SelectContent>
@@ -956,13 +956,13 @@ function AdCampaignsManager() {
                   <label htmlFor="businessId" className="text-sm font-medium">Business *</label>
                   <Select 
                     value={formData.businessId} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, businessId: value }))}
+                    onValueChange={(value) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, businessId: value }))}
                   >
                     <SelectTrigger data-testid="select-campaign-business">
                       <SelectValue placeholder="Select business" />
                     </SelectTrigger>
                     <SelectContent>
-                      {businesses.map(business => (
+                      {businesses.filter(business => business.id && business.id !== '').map(business => (
                         <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -986,7 +986,7 @@ function AdCampaignsManager() {
                   <label htmlFor="adType" className="text-sm font-medium">Ad Type *</label>
                   <Select 
                     value={formData.adType} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, adType: value }))}
+                    onValueChange={(value) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, adType: value }))}
                   >
                     <SelectTrigger data-testid="select-campaign-type">
                       <SelectValue placeholder="Select type" />
@@ -1001,15 +1001,15 @@ function AdCampaignsManager() {
                 <div className="space-y-2">
                   <label htmlFor="categoryId" className="text-sm font-medium">Category (optional)</label>
                   <Select 
-                    value={formData.categoryId || ''} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, categoryId: value }))}
+                    value={formData.categoryId || 'none'} 
+                    onValueChange={(value) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, categoryId: value === 'none' ? '' : value }))}
                   >
                     <SelectTrigger data-testid="select-campaign-category">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {categories.map(category => (
+                      <SelectItem value="none">None</SelectItem>
+                      {categories.filter(category => category.id && category.id !== '').map(category => (
                         <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -1089,7 +1089,7 @@ function AdCampaignsManager() {
                   <label htmlFor="startDate" className="text-sm font-medium">Start Date</label>
                   <DatePicker
                     date={formData.startDate instanceof Date ? formData.startDate : undefined}
-                    onChange={(date) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, startDate: date }))}
+                    onChange={(date) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, startDate: date }))}
                     placeholder="Select start date"
                   />
                 </div>
@@ -1097,7 +1097,7 @@ function AdCampaignsManager() {
                   <label htmlFor="endDate" className="text-sm font-medium">End Date</label>
                   <DatePicker
                     date={formData.endDate instanceof Date ? formData.endDate : undefined}
-                    onChange={(date) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, endDate: date }))}
+                    onChange={(date) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, endDate: date }))}
                     placeholder="Select end date"
                   />
                 </div>
@@ -1107,7 +1107,7 @@ function AdCampaignsManager() {
                 <Switch
                   id="isActive"
                   checked={formData.isActive ?? true}
-                  onCheckedChange={(checked) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, isActive: checked }))}
+                  onCheckedChange={(checked) => setFormData((prev: Partial<InsertAdCampaign>) => ({ ...prev, isActive: checked }))}
                   data-testid="switch-campaign-active"
                 />
                 <label
@@ -1851,7 +1851,7 @@ function SubcategoriesManager() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map(category => (
+                      {categories.filter(category => category.id && category.id !== '').map(category => (
                         <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -2233,14 +2233,15 @@ function GuidesManager() {
                 <div className="space-y-2">
                   <label htmlFor="categoryId" className="text-sm font-medium">Category *</label>
                   <Select 
-                    value={formData.categoryId || ''} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, categoryId: value, subcategoryId: '' }))}
+                    value={formData.categoryId || 'none'} 
+                    onValueChange={(value) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, categoryId: value === 'none' ? '' : value, subcategoryId: '' }))}
                   >
                     <SelectTrigger data-testid="select-guide-category">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map(category => (
+                      <SelectItem value="none">Select a category</SelectItem>
+                      {categories.filter(category => category.id && category.id !== '').map(category => (
                         <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -2252,16 +2253,16 @@ function GuidesManager() {
                 <div className="space-y-2">
                   <label htmlFor="subcategoryId" className="text-sm font-medium">Subcategory</label>
                   <Select 
-                    value={formData.subcategoryId || ''} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, subcategoryId: value || null }))}
+                    value={formData.subcategoryId || 'none'} 
+                    onValueChange={(value) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, subcategoryId: value === 'none' ? null : value }))}
                     disabled={!formData.categoryId}
                   >
                     <SelectTrigger data-testid="select-guide-subcategory">
                       <SelectValue placeholder="Select subcategory" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {formData.categoryId && getSubcategoriesForCategory(formData.categoryId).map(subcategory => (
+                      <SelectItem value="none">None</SelectItem>
+                      {formData.categoryId && getSubcategoriesForCategory(formData.categoryId).filter(subcategory => subcategory.id && subcategory.id !== '').map(subcategory => (
                         <SelectItem key={subcategory.id} value={subcategory.id}>{subcategory.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -2271,7 +2272,7 @@ function GuidesManager() {
                   <label htmlFor="type" className="text-sm font-medium">Type</label>
                   <Select 
                     value={formData.type || 'resort'} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, type: value }))}
+                    onValueChange={(value) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, type: value }))}
                   >
                     <SelectTrigger data-testid="select-guide-type">
                       <SelectValue placeholder="Select type" />
@@ -2301,15 +2302,15 @@ function GuidesManager() {
                 <div className="space-y-2">
                   <label htmlFor="businessId" className="text-sm font-medium">Business (optional)</label>
                   <Select 
-                    value={formData.businessId || ''} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, businessId: value || null }))}
+                    value={formData.businessId || 'none'} 
+                    onValueChange={(value) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, businessId: value === 'none' ? null : value }))}
                   >
                     <SelectTrigger data-testid="select-guide-business">
                       <SelectValue placeholder="Select business" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {businesses.map(business => (
+                      <SelectItem value="none">None</SelectItem>
+                      {businesses.filter(business => business.id && business.id !== '').map(business => (
                         <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -2318,14 +2319,14 @@ function GuidesManager() {
                 <div className="space-y-2">
                   <label htmlFor="adTier" className="text-sm font-medium">Ad Tier</label>
                   <Select 
-                    value={formData.adTier || ''} 
-                    onValueChange={(value) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, adTier: value || null }))}
+                    value={formData.adTier || 'none'} 
+                    onValueChange={(value) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, adTier: value === 'none' ? null : value }))}
                   >
                     <SelectTrigger data-testid="select-guide-ad-tier">
                       <SelectValue placeholder="Select ad tier" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       <SelectItem value="basic">Basic</SelectItem>
                       <SelectItem value="standard">Standard</SelectItem>
                       <SelectItem value="premium">Premium</SelectItem>
@@ -2372,7 +2373,7 @@ function GuidesManager() {
                   <Switch
                     id="isPremium"
                     checked={formData.isPremium ?? false}
-                    onCheckedChange={(checked) => setFormData((prev: Partial<InsertBusiness>) => ({ ...prev, isPremium: checked }))}
+                    onCheckedChange={(checked) => setFormData((prev: Partial<InsertGuide>) => ({ ...prev, isPremium: checked }))}
                     data-testid="switch-guide-premium"
                   />
                   <label
