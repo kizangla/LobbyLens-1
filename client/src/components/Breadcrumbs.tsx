@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, Home } from 'lucide-react';
 import { NavigationPath } from '@/hooks/useSessionMemory';
@@ -63,7 +62,7 @@ export default function Breadcrumbs({ path, onNavigate }: BreadcrumbsProps) {
             const isHome = item.id === 'home';
 
             return (
-              <Fragment key={item.id}>
+              <span key={item.id} className="contents">
                 {index > 0 && (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -89,7 +88,7 @@ export default function Breadcrumbs({ path, onNavigate }: BreadcrumbsProps) {
                     </Button>
                   )}
                 </li>
-              </Fragment>
+              </span>
             );
           })}
         </ol>
