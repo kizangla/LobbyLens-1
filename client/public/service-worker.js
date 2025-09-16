@@ -63,12 +63,14 @@ const networkFirstWithCache = async (request, cacheName) => {
     // Try to get from network first
     const networkResponse = await fetch(request);
     
-    // Cache the successful response
-    const responseToCache = networkResponse.clone();
-    caches.open(cacheName)
-      .then(cache => {
-        cache.put(request, responseToCache);
-      });
+    // Only cache GET requests (POST, PUT, DELETE, etc. cannot be cached)
+    if (request.method === 'GET' && networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
+      caches.open(cacheName)
+        .then(cache => {
+          cache.put(request, responseToCache);
+        });
+    }
     
     return networkResponse;
   } catch (error) {
@@ -133,8 +135,8 @@ self.addEventListener('fetch', (event) => {
         
         return fetch(request)
           .then((response) => {
-            // Don't cache non-successful responses
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            // Don't cache non-successful responses or non-GET requests
+            if (!response || response.status !== 200 || response.type !== 'basic' || request.method !== 'GET') {
               return response;
             }
             
