@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -9,8 +9,13 @@ import SubcategoryGrid from '@/components/SubcategoryGrid';
 import SubcategoryView from '@/components/SubcategoryView';
 import PremiumAdBanner from '@/components/PremiumAdBanner';
 import AdPlacement from '@/components/AdPlacement';
+import ContinueReading from '@/components/ContinueReading';
+import QuickActions from '@/components/QuickActions';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import useSubcategoryNavigation from '@/hooks/useSubcategoryNavigation';
 import useSearch from '@/hooks/useSearch';
+import useSessionMemory, { SessionItem } from '@/hooks/useSessionMemory';
+import useUserPreferences from '@/hooks/useUserPreferences';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTranslation } from '@/lib/i18n';
 import { SearchResult } from '@/lib/types';
@@ -20,6 +25,24 @@ export default function Home() {
   const { t } = useTranslation();
   const { trackView } = useAnalytics();
   const [showPremiumAd, setShowPremiumAd] = useState(true);
+  
+  // Session memory and user preferences
+  const {
+    history,
+    navigationPath,
+    addToHistory,
+    getRecentlyViewed,
+    getContinueReading,
+    updateNavigationPath,
+    getTimeAgo,
+    getFrequentCategories,
+  } = useSessionMemory();
+  
+  const {
+    preferences,
+    trackCategoryView,
+    addSearchHistory,
+  } = useUserPreferences();
   
   // Navigation state and handlers
   const {
@@ -37,7 +60,8 @@ export default function Home() {
     goToHome,
     selectCategory,
     selectSubcategory,
-    selectGuide
+    selectGuide,
+    setSelectedGuide
   } = useSubcategoryNavigation();
   
   // Search state and handlers
@@ -54,6 +78,14 @@ export default function Home() {
     const resultCategory = categories.find(c => c.id === result.categoryId);
     if (!resultCategory) return;
     
+    // Track in session memory
+    addToHistory('guide', {
+      id: result.id,
+      name: result.title,
+      categoryId: result.categoryId,
+      categoryName: resultCategory.name,
+    });
+    
     // Manually set the required states for displaying the guide modal
     setCurrentView('search');
     setIsModalOpen(true);
@@ -67,12 +99,17 @@ export default function Home() {
     if (currentView === 'subcategory') {
       // Go back to category view
       setCurrentView('category');
+      updateNavigationPath({
+        category: selectedCategory ? { id: selectedCategory.id, name: selectedCategory.name } : undefined,
+      });
     } else if (currentView === 'category') {
       // Go back to home
       goToHome();
+      updateNavigationPath({ home: true });
     } else if (currentView === 'search') {
       // Go back to previous view or home
       goToHome();
+      updateNavigationPath({ home: true });
     }
   };
   
@@ -81,15 +118,125 @@ export default function Home() {
     handleSearch(query);
     if (query.length >= 2) {
       setCurrentView('search');
+      addSearchHistory(query);
+      addToHistory('search', {
+        id: `search-${Date.now()}`,
+        name: `Search: ${query}`,
+        searchQuery: query,
+      });
     } else if (currentView === 'search') {
       goToHome();
     }
   };
   
-  // Track page views
+  // Track page views and update navigation path
   useEffect(() => {
     trackView('page', currentView === 'home' ? 'home' : currentView);
-  }, [currentView, trackView]);
+    
+    // Update navigation path based on current view
+    if (currentView === 'home') {
+      updateNavigationPath({ home: true });
+    } else if (currentView === 'category' && selectedCategory) {
+      updateNavigationPath({
+        category: { id: selectedCategory.id, name: selectedCategory.name },
+      });
+    } else if (currentView === 'subcategory' && selectedCategory && selectedSubcategoryId) {
+      // Note: Subcategory name would need to be fetched from API or passed through navigation
+      updateNavigationPath({
+        category: { id: selectedCategory.id, name: selectedCategory.name },
+        subcategory: { id: selectedSubcategoryId, name: selectedSubcategoryId },
+      });
+    }
+  }, [currentView, selectedCategory, selectedSubcategoryId, trackView, updateNavigationPath]);
+  
+  // Enhanced category selection with tracking
+  const handleCategorySelect = useCallback((categoryId: string) => {
+    selectCategory(categoryId);
+    const category = categories.find(c => c.id === categoryId);
+    if (category) {
+      trackCategoryView(categoryId);
+      addToHistory('category', {
+        id: category.id,
+        name: category.name,
+      });
+    }
+  }, [selectCategory, categories, trackCategoryView, addToHistory]);
+  
+  // Enhanced subcategory selection with tracking
+  const handleSubcategorySelect = useCallback((subcategoryId: string) => {
+    selectSubcategory(subcategoryId);
+    if (selectedCategory) {
+      // Note: In a real implementation, you would get the subcategory name from the component that calls this
+      addToHistory('subcategory', {
+        id: subcategoryId,
+        name: subcategoryId,
+        categoryId: selectedCategory.id,
+        categoryName: selectedCategory.name,
+      });
+    }
+  }, [selectSubcategory, selectedCategory, addToHistory]);
+  
+  // Enhanced guide selection with tracking
+  const handleGuideSelect = useCallback((guideId: string) => {
+    selectGuide(guideId);
+    const guide = guides.find(g => g.id === guideId);
+    if (guide && selectedCategory) {
+      addToHistory('guide', {
+        id: guide.id,
+        name: guide.title,
+        categoryId: selectedCategory.id,
+        categoryName: selectedCategory.name,
+      });
+    }
+  }, [selectGuide, guides, selectedCategory, addToHistory]);
+  
+  // Handle session item click from Continue Reading
+  const handleSessionItemClick = useCallback((item: SessionItem) => {
+    if (item.type === 'category' && item.data.id) {
+      handleCategorySelect(item.data.id);
+    } else if (item.type === 'subcategory' && item.data.categoryId) {
+      selectCategory(item.data.categoryId);
+      setTimeout(() => {
+        if (item.data.id) {
+          handleSubcategorySelect(item.data.id);
+        }
+      }, 100);
+    } else if (item.type === 'guide' && item.data.categoryId) {
+      const guide = guides.find(g => g.id === item.data.id);
+      if (guide) {
+        setSelectedGuide(guide);
+        setIsModalOpen(true);
+      }
+    }
+  }, [handleCategorySelect, handleSubcategorySelect, selectCategory, guides, setSelectedGuide, setIsModalOpen]);
+  
+  // Handle quick action click
+  const handleQuickActionClick = useCallback((categoryId?: string, subcategoryId?: string) => {
+    if (categoryId) {
+      handleCategorySelect(categoryId);
+      if (subcategoryId) {
+        setTimeout(() => {
+          handleSubcategorySelect(subcategoryId);
+        }, 100);
+      }
+    }
+  }, [handleCategorySelect, handleSubcategorySelect]);
+  
+  // Handle breadcrumb navigation
+  const handleBreadcrumbNavigate = useCallback((type: 'home' | 'category' | 'subcategory', id?: string) => {
+    if (type === 'home') {
+      goToHome();
+    } else if (type === 'category' && id) {
+      handleCategorySelect(id);
+    } else if (type === 'subcategory' && id) {
+      handleSubcategorySelect(id);
+    }
+  }, [goToHome, handleCategorySelect, handleSubcategorySelect]);
+  
+  // Get continue reading and recent items
+  const continueReading = getContinueReading();
+  const recentlyViewed = getRecentlyViewed(6);
+  const frequentCategories = getFrequentCategories(5);
 
   return (
     <div className="app-container">
@@ -107,6 +254,12 @@ export default function Home() {
         onSearch={handleSearchWithView}
       />
       
+      {/* Breadcrumbs */}
+      <Breadcrumbs 
+        path={navigationPath}
+        onNavigate={handleBreadcrumbNavigate}
+      />
+      
       <main className="flex-1 p-8">
         {/* Loading indicators */}
         {(categoriesLoading || guidesLoading || searchLoading) && (
@@ -118,6 +271,16 @@ export default function Home() {
         {/* Home view - Categories Grid with Ad Placement */}
         {currentView === 'home' && (
           <>
+            {/* Continue Reading Section */}
+            {preferences.displayPreferences.showContinueReading && (
+              <ContinueReading
+                continueItem={continueReading}
+                recentItems={recentlyViewed}
+                onItemClick={handleSessionItemClick}
+                getTimeAgo={getTimeAgo}
+              />
+            )}
+            
             {/* Homepage A4 Ad Placement */}
             <div className="mb-8">
               <AdPlacement 
@@ -134,7 +297,7 @@ export default function Home() {
             ) : (
               <CategoryGrid 
                 categories={categories} 
-                onSelectCategory={selectCategory} 
+                onSelectCategory={handleCategorySelect} 
               />
             )}
           </>
@@ -149,7 +312,7 @@ export default function Home() {
           ) : (
             <SubcategoryGrid 
               category={selectedCategory} 
-              onSelectSubcategory={selectSubcategory} 
+              onSelectSubcategory={handleSubcategorySelect} 
             />
           )
         )}
@@ -165,7 +328,7 @@ export default function Home() {
               category={selectedCategory}
               subcategoryId={selectedSubcategoryId}
               guides={guides}
-              onSelectGuide={selectGuide}
+              onSelectGuide={handleGuideSelect}
               isLoading={guidesLoading}
             />
           )
@@ -195,6 +358,15 @@ export default function Home() {
         guide={selectedGuide}
         category={selectedCategory}
       />
+      
+      {/* Quick Actions FAB */}
+      {preferences.displayPreferences.showQuickActions && (
+        <QuickActions
+          frequentCategories={frequentCategories}
+          recentHistory={history}
+          onActionClick={handleQuickActionClick}
+        />
+      )}
     </div>
   );
 }

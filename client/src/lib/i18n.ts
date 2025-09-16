@@ -7,6 +7,15 @@ const translations = {
     // General
     back: 'Back',
     search: 'Search guides...',
+    continue: 'Continue',
+    continueReading: 'Continue where you left off',
+    recentlyViewed: 'Recently Viewed',
+    frequentlyUsed: 'Frequently Used',
+    restaurantMenu: 'Restaurant Menu',
+    todaysEvents: "Today's Events",
+    callReception: 'Call Reception',
+    resortMap: 'Resort Map',
+    needHelp: 'Need Help?',
     
     // Categories
     categories: {
@@ -58,6 +67,15 @@ const translations = {
     // General
     back: 'Volver',
     search: 'Buscar guías...',
+    continue: 'Continuar',
+    continueReading: 'Continuar donde lo dejaste',
+    recentlyViewed: 'Vistos Recientemente',
+    frequentlyUsed: 'Usados Frecuentemente',
+    restaurantMenu: 'Menú del Restaurante',
+    todaysEvents: 'Eventos de Hoy',
+    callReception: 'Llamar a Recepción',
+    resortMap: 'Mapa del Resort',
+    needHelp: '¿Necesitas Ayuda?',
     
     // Categories
     categories: {
@@ -109,6 +127,15 @@ const translations = {
     // General
     back: 'Retour',
     search: 'Rechercher des guides...',
+    continue: 'Continuer',
+    continueReading: 'Continuer où vous vous êtes arrêté',
+    recentlyViewed: 'Récemment consultés',
+    frequentlyUsed: 'Fréquemment utilisés',
+    restaurantMenu: 'Menu du Restaurant',
+    todaysEvents: 'Événements du Jour',
+    callReception: 'Appeler la Réception',
+    resortMap: 'Plan du Resort',
+    needHelp: 'Besoin d\'aide?',
     
     // Categories
     categories: {
