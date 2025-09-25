@@ -37,7 +37,8 @@ const BATCH_INTERVAL = 5000; // 5 seconds
 const IMPRESSIONS_STORAGE_KEY = 'analytics_impressions';
 
 export function AnalyticsProvider({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  const locationData = useLocation();
+  const location = locationData ? locationData[0] : '/';
   const {
     trackEvent: baseTrackEvent,
     trackView: baseTrackView,

@@ -1,0 +1,65 @@
+chunk-RPCDYKBN.js?v=dfcf8907:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-WERSD76P.js?v=bb08001b:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RPCDYKBN.js?v=d0963b99:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+2chunk-QCHXOAYK.js?v=d0963b99:136 Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+printWarning @ chunk-QCHXOAYK.js?v=d0963b99:136Understand this error
+chunk-QCHXOAYK.js?v=d0963b99:1062 Uncaught TypeError: Cannot read properties of null (reading 'useContext')
+    at useContext (chunk-QCHXOAYK.js?v=d0963b99:1062:29)
+    at useRouter (wouter.js?v=d0963b99:259:51)
+    at useLocation (wouter.js?v=d0963b99:270:47)
+    at AnalyticsProvider (AnalyticsProvider.tsx:40:22)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=dfcf8907:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=dfcf8907:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=dfcf8907:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=dfcf8907:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=dfcf8907:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=dfcf8907:3733:39)Understand this error
+2chunk-QCHXOAYK.js?v=d0963b99:136 Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+printWarning @ chunk-QCHXOAYK.js?v=d0963b99:136Understand this error
+chunk-QCHXOAYK.js?v=d0963b99:1062 Uncaught TypeError: Cannot read properties of null (reading 'useContext')
+    at useContext (chunk-QCHXOAYK.js?v=d0963b99:1062:29)
+    at useRouter (wouter.js?v=d0963b99:259:51)
+    at useLocation (wouter.js?v=d0963b99:270:47)
+    at AnalyticsProvider (AnalyticsProvider.tsx:40:22)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=dfcf8907:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=dfcf8907:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=dfcf8907:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=dfcf8907:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=dfcf8907:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=dfcf8907:3733:39)Understand this error
+chunk-RPCDYKBN.js?v=dfcf8907:14032 The above error occurred in the <AnalyticsProvider> component:
+
+    at AnalyticsProvider (https://2084d62e-2baa-46fa-a677-33fa100ee99b-00-lk5hxvmgoehx.picard.replit.dev/src/components/AnalyticsProvider.tsx:34:37)
+    at AppProvider (https://2084d62e-2baa-46fa-a677-33fa100ee99b-00-lk5hxvmgoehx.picard.replit.dev/src/App.tsx?v=2I0jNRtrRFE8_nRs2nz90:42:24)
+    at QueryClientProvider (https://2084d62e-2baa-46fa-a677-33fa100ee99b-00-lk5hxvmgoehx.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=dfcf8907:2881:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=dfcf8907:14032Understand this error
+chunk-RPCDYKBN.js?v=dfcf8907:19413 Uncaught TypeError: Cannot read properties of null (reading 'useContext')
+    at useContext (chunk-QCHXOAYK.js?v=d0963b99:1062:29)
+    at useRouter (wouter.js?v=d0963b99:259:51)
+    at useLocation (wouter.js?v=d0963b99:270:47)
+    at AnalyticsProvider (AnalyticsProvider.tsx:40:22)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=dfcf8907:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=dfcf8907:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=dfcf8907:15914:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=dfcf8907:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=dfcf8907:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=dfcf8907:19137:13)Understand this error
+(index):136 ServiceWorker registration successful
+main.tsx:16 Service Worker registered with scope: https://2084d62e-2baa-46fa-a677-33fa100ee99b-00-lk5hxvmgoehx.picard.replit.dev/
+(index):1 Error while trying to use the following icon from the Manifest: https://2084d62e-2baa-46fa-a677-33fa100ee99b-00-lk5hxvmgoehx.picard.replit.dev/icons/icon-192.png (Download error or resource isn't a valid image)Understand this warning
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=xrYtuzQGXSHo' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
