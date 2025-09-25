@@ -1708,9 +1708,19 @@ function CategoriesManager() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
-              <Button type="submit">
+            <CardFooter className="flex justify-end space-x-2 bg-gray-50 border-t border-gray-200">
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={resetForm}
+                className="hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
+              >
                 {(createCategory.isPending || updateCategory.isPending) ? 
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 
                   editingCategory ? 'Update Category' : 'Create Category'
@@ -1959,12 +1969,23 @@ function SubcategoriesManager() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Subcategories</h2>
-        <Button onClick={() => setIsAdding(!isAdding)} variant={isAdding ? "secondary" : "default"} disabled={categories.length === 0}>
-          {isAdding ? 'Cancel' : <><Plus className="mr-2 h-4 w-4" /> Add Subcategory</>}
-        </Button>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Subcategories</h2>
+            <p className="text-sm text-gray-500 mt-1">Organize your categories with subcategories</p>
+          </div>
+          <Button 
+            onClick={() => setIsAdding(!isAdding)} 
+            variant={isAdding ? "secondary" : "default"} 
+            disabled={categories.length === 0}
+            className={!isAdding ? "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg" : ""}
+          >
+            {isAdding ? 'Cancel' : <><Plus className="mr-2 h-4 w-4" /> Add Subcategory</>}
+          </Button>
+        </div>
       </div>
 
       {categories.length === 0 && !isLoading && (
@@ -1973,10 +1994,14 @@ function SubcategoriesManager() {
         </div>
       )}
 
+      {/* Add/Edit Form */}
       {isAdding && (
-        <Card className="mb-8">
+        <Card className="mb-8 shadow-xl border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-1" />
           <CardHeader>
-            <CardTitle>{editingSubcategory ? 'Edit Subcategory' : 'Add New Subcategory'}</CardTitle>
+            <CardTitle className="text-xl font-bold">
+              {editingSubcategory ? 'Edit Subcategory' : 'Add New Subcategory'}
+            </CardTitle>
             <CardDescription>
               {editingSubcategory 
                 ? 'Update the subcategory details below' 
@@ -2030,9 +2055,19 @@ function SubcategoriesManager() {
                 <Input id="color" name="color" type="color" value={formData.color} onChange={handleInputChange} />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
-              <Button type="submit">
+            <CardFooter className="flex justify-end space-x-2 bg-gray-50 border-t border-gray-200">
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={resetForm}
+                className="hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md"
+              >
                 {(createSubcategory.isPending || updateSubcategory.isPending) ? 
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 
                   editingSubcategory ? 'Update Subcategory' : 'Create Subcategory'
@@ -2043,16 +2078,17 @@ function SubcategoriesManager() {
         </Card>
       )}
 
-      <div className="border rounded-md">
+      {/* Table Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-50 border-b border-gray-200">
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Order</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="font-semibold text-gray-700">Name</TableHead>
+              <TableHead className="font-semibold text-gray-700">Category</TableHead>
+              <TableHead className="font-semibold text-gray-700">ID</TableHead>
+              <TableHead className="font-semibold text-gray-700">Description</TableHead>
+              <TableHead className="font-semibold text-gray-700">Order</TableHead>
+              <TableHead className="font-semibold text-gray-700">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -2068,27 +2104,40 @@ function SubcategoriesManager() {
               </TableRow>
             ) : (
               subcategories.map(subcategory => (
-                <TableRow key={subcategory.id}>
-                  <TableCell>{subcategory.name}</TableCell>
-                  <TableCell>{getCategoryName(subcategory.categoryId)}</TableCell>
-                  <TableCell>{subcategory.id}</TableCell>
-                  <TableCell>{subcategory.description || '-'}</TableCell>
-                  <TableCell>{subcategory.order || 1}</TableCell>
+                <TableRow key={subcategory.id} className="hover:bg-gray-50 transition-colors">
+                  <TableCell className="font-medium">{subcategory.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {getCategoryName(subcategory.categoryId)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-gray-600">
+                    <code className="px-2 py-1 bg-gray-100 rounded text-sm">{subcategory.id}</code>
+                  </TableCell>
+                  <TableCell className="text-gray-600">{subcategory.description || '-'}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{subcategory.order || 1}</Badge>
+                  </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleEditSubcategory(subcategory)}
+                        className="hover:bg-purple-50 hover:text-purple-600 transition-colors"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </AlertDialogTrigger>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Subcategory</AlertDialogTitle>
