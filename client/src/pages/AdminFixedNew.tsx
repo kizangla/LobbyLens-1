@@ -817,7 +817,7 @@ function AdCampaignsManager() {
       return;
     }
 
-    const campaignData: InsertAdCampaign = {
+    const campaignData = {
       businessId: formData.businessId!,
       campaignName: formData.campaignName!,
       adType: formData.adType!,
@@ -829,9 +829,9 @@ function AdCampaignsManager() {
       priority: formData.priority || 0,
       dailyBudget: formData.dailyBudget || null,
       totalBudget: formData.totalBudget || null,
-      startDate: formData.startDate || null,
-      endDate: formData.endDate || null
-    };
+      startDate: formData.startDate ? new Date(formData.startDate) : null,
+      endDate: formData.endDate ? new Date(formData.endDate) : null
+    } as InsertAdCampaign;
 
     if (editingCampaign) {
       updateCampaign.mutate({ id: editingCampaign.id, campaign: campaignData });
@@ -2109,7 +2109,7 @@ function GuidesManager() {
       return;
     }
     
-    const guideData: InsertGuide = {
+    const guideData = {
       id: formData.id!,
       categoryId: formData.categoryId!,
       subcategoryId: formData.subcategoryId || null,
@@ -2121,8 +2121,8 @@ function GuidesManager() {
       businessId: formData.businessId || null,
       isPremium: formData.isPremium || false,
       adTier: formData.adTier || null,
-      validUntil: formData.validUntil || null
-    };
+      validUntil: formData.validUntil ? new Date(formData.validUntil) : null
+    } as InsertGuide;
     
     if (editingGuide) {
       updateGuide.mutate({ id: editingGuide.id, guide: guideData });
