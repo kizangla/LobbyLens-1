@@ -18,7 +18,7 @@ import useSessionMemory, { SessionItem } from '@/hooks/useSessionMemory';
 import useUserPreferences from '@/hooks/useUserPreferences';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTranslation } from '@/lib/i18n';
-import { SearchResult } from '@/lib/types';
+import { SearchResult, Guide } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
@@ -178,8 +178,36 @@ export default function Home() {
   
   // Enhanced guide selection with tracking
   const handleGuideSelect = useCallback((guideId: string) => {
-    selectGuide(guideId);
-    const guide = guides.find(g => g.id === guideId);
+    // When selecting from subcategory view, the guide might not be in the main guides array
+    // So we need to find it from all available sources
+    let guide = guides.find(g => g.id === guideId);
+    
+    // If not found in main guides array and we're in subcategory view, 
+    // fetch it from the API or use the passed guide directly
+    if (!guide) {
+      // For now, we'll create a minimal guide object to open the modal
+      // The GuideDetail component will fetch the full guide data
+      guide = {
+        id: guideId,
+        title: 'Loading...',
+        excerpt: '',
+        categoryId: selectedCategory?.id || '',
+        type: 'resort',
+        content: '',
+        subcategoryId: selectedSubcategoryId,
+        tags: [],
+        businessId: null,
+        validUntil: null,
+        adCampaignId: null,
+        isPremium: false,
+        adTier: null,
+        displayOrder: 0
+      } as Guide;
+    }
+    
+    setSelectedGuide(guide);
+    setIsModalOpen(true);
+    
     if (guide && selectedCategory) {
       addToHistory('guide', {
         id: guide.id,
@@ -188,7 +216,7 @@ export default function Home() {
         categoryName: selectedCategory.name,
       });
     }
-  }, [selectGuide, guides, selectedCategory, addToHistory]);
+  }, [guides, selectedCategory, selectedSubcategoryId, setSelectedGuide, setIsModalOpen, addToHistory]);
   
   // Handle session item click from Continue Reading
   const handleSessionItemClick = useCallback((item: SessionItem) => {

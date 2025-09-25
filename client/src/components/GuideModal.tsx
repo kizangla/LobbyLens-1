@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Guide, Category } from "@/lib/types";
 import GuideDetail from "./GuideDetail";
 import { useAnalyticsContext } from '@/components/AnalyticsProvider';
+import { useQuery } from '@tanstack/react-query';
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -17,41 +18,57 @@ export default function GuideModal({ isOpen, onClose, guide, category }: GuideMo
   const { trackEvent, trackEngagement } = useAnalyticsContext();
   const openTimeRef = useRef<number>(Date.now());
   
+  // Fetch full guide data if we only have a placeholder
+  const { data: fullGuide, isLoading } = useQuery<Guide>({
+    queryKey: ['/api/guides', guide?.id],
+    enabled: !!guide?.id && isOpen && guide?.title === 'Loading...',
+    queryFn: async () => {
+      const response = await fetch(`/api/guides/${guide?.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch guide');
+      }
+      return response.json();
+    }
+  });
+  
+  // Use the full guide if fetched, otherwise use the provided guide
+  const displayGuide = fullGuide || guide;
+  
   // Track modal open/close events and engagement time
   useEffect(() => {
-    if (isOpen && guide) {
+    if (isOpen && displayGuide && displayGuide.title !== 'Loading...') {
       openTimeRef.current = Date.now();
       
       // Track modal open event
-      trackEvent('modal_open', 'guide_modal', guide.id, {
-        guideTitle: guide.title,
-        guideType: guide.type,
+      trackEvent('modal_open', 'guide_modal', displayGuide.id, {
+        guideTitle: displayGuide.title,
+        guideType: displayGuide.type,
         categoryId: category?.id,
         categoryName: category?.name,
-        isPremium: guide.isPremium
+        isPremium: displayGuide.isPremium
       });
     }
     
     // Cleanup function to track modal close and engagement
     return () => {
-      if (isOpen && guide) {
+      if (isOpen && displayGuide && displayGuide.title !== 'Loading...') {
         const viewDuration = Date.now() - openTimeRef.current;
         
         // Track engagement time
-        trackEngagement('guide_modal', guide.id, viewDuration, {
-          guideTitle: guide.title,
+        trackEngagement('guide_modal', displayGuide.id, viewDuration, {
+          guideTitle: displayGuide.title,
           categoryId: category?.id,
           categoryName: category?.name
         });
         
         // Track modal close event
-        trackEvent('modal_close', 'guide_modal', guide.id, {
+        trackEvent('modal_close', 'guide_modal', displayGuide.id, {
           viewDuration,
-          guideTitle: guide.title
+          guideTitle: displayGuide.title
         });
       }
     };
-  }, [isOpen, guide, category, trackEvent, trackEngagement]);
+  }, [isOpen, displayGuide, category, trackEvent, trackEngagement]);
   
   if (!guide || !category) return null;
 
@@ -78,7 +95,18 @@ export default function GuideModal({ isOpen, onClose, guide, category }: GuideMo
         </DialogHeader>
         
         <div className="p-6 overflow-y-auto guide-content">
-          <GuideDetail guide={guide} category={category} onBack={onClose} />
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+          ) : displayGuide ? (
+            <GuideDetail guide={displayGuide} category={category} onBack={onClose} />
+          ) : (
+            <div className="text-center py-10">
+              <h3 className="text-xl font-medium mb-2">Guide not found</h3>
+              <p className="text-muted-foreground">The selected guide could not be loaded.</p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
