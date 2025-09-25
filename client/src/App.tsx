@@ -3,8 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// TEMPORARILY DISABLED: AnalyticsProvider was causing infinite loops
-// import { AnalyticsProvider } from "@/components/AnalyticsProvider";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import AdminPanel from "@/pages/AdminFixedNew";
@@ -119,14 +118,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <WouterRouter>
-          {/* TEMPORARILY DISABLED: AnalyticsProvider was causing infinite loops */}
-          {/* <AnalyticsProvider> */}
+          <AnalyticsProvider>
             <TooltipProvider>
               <Toaster />
               <Routes />
               <ScreensaverWrapper />
             </TooltipProvider>
-          {/* </AnalyticsProvider> */}
+          </AnalyticsProvider>
         </WouterRouter>
       </AppProvider>
     </QueryClientProvider>
