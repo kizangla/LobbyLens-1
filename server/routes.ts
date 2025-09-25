@@ -70,6 +70,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a specific subcategory by ID
+  app.get("/api/subcategories/:id", async (req, res) => {
+    try {
+      const subcategory = await storage.getSubcategoryById(req.params.id);
+      if (!subcategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      res.json(subcategory);
+    } catch (error) {
+      console.error("Error fetching subcategory:", error);
+      res.status(500).json({ message: "Failed to fetch subcategory" });
+    }
+  });
+  
+  // Get guides for a specific subcategory
+  app.get("/api/subcategories/:id/guides", async (req, res) => {
+    try {
+      const subcategory = await storage.getSubcategoryById(req.params.id);
+      if (!subcategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      
+      const guides = await storage.getGuidesBySubcategoryId(req.params.id);
+      res.json(guides);
+    } catch (error) {
+      console.error("Error fetching guides for subcategory:", error);
+      res.status(500).json({ message: "Failed to fetch guides for subcategory" });
+    }
+  });
+  
   // Create a new subcategory
   app.post("/api/subcategories", async (req, res) => {
     try {
