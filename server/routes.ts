@@ -200,7 +200,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new guide (admin access)
   app.post("/api/guides", async (req, res) => {
     try {
-      const validatedData = insertGuideSchema.parse(req.body);
+      // Convert date strings to Date objects if present
+      const dataToValidate = {
+        ...req.body,
+        validUntil: req.body.validUntil ? new Date(req.body.validUntil) : null
+      };
+      const validatedData = insertGuideSchema.parse(dataToValidate);
       const newGuide = await storage.createGuide(validatedData);
       res.status(201).json(newGuide);
     } catch (error) {
@@ -233,7 +238,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a guide (admin access)
   app.put("/api/guides/:id", async (req, res) => {
     try {
-      const validatedData = insertGuideSchema.parse(req.body);
+      // Convert date strings to Date objects if present
+      const dataToValidate = {
+        ...req.body,
+        validUntil: req.body.validUntil ? new Date(req.body.validUntil) : null
+      };
+      const validatedData = insertGuideSchema.parse(dataToValidate);
       const updatedGuide = await storage.updateGuide(req.params.id, validatedData);
       if (!updatedGuide) {
         return res.status(404).json({ message: "Guide not found" });
@@ -458,7 +468,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new ad campaign
   app.post("/api/ad-campaigns", async (req, res) => {
     try {
-      const validatedData = insertAdCampaignSchema.parse(req.body);
+      // Convert date strings to Date objects if present
+      const dataToValidate = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      const validatedData = insertAdCampaignSchema.parse(dataToValidate);
       const newCampaign = await storage.createAdCampaign(validatedData);
       res.status(201).json(newCampaign);
     } catch (error) {
@@ -474,7 +490,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/ad-campaigns/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const validatedData = insertAdCampaignSchema.partial().parse(req.body);
+      // Convert date strings to Date objects if present
+      const dataToValidate = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : req.body.startDate,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : req.body.endDate
+      };
+      const validatedData = insertAdCampaignSchema.partial().parse(dataToValidate);
       const updatedCampaign = await storage.updateAdCampaign(id, validatedData);
       if (!updatedCampaign) {
         return res.status(404).json({ message: "Ad campaign not found" });
@@ -1077,7 +1099,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create partner ad campaign
   app.post("/api/partner/ad-campaigns", async (req, res) => {
     try {
-      const validatedData = insertAdCampaignSchema.parse(req.body);
+      // Convert date strings to Date objects if present
+      const dataToValidate = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      const validatedData = insertAdCampaignSchema.parse(dataToValidate);
       
       if (!validatedData.businessId) {
         return res.status(400).json({ message: "Business ID is required" });
