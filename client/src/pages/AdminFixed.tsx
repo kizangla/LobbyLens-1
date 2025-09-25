@@ -28,7 +28,7 @@ import {
 import { Loader2, Plus, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
-import { Category, Guide, InsertCategory, InsertGuide } from '@/lib/types';
+import { Category, Guide, Subcategory, InsertCategory, InsertGuide, InsertSubcategory } from '@/lib/types';
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('categories');
@@ -41,11 +41,16 @@ export default function AdminPanel() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-8">
           <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="subcategories">Subcategories</TabsTrigger>
           <TabsTrigger value="guides">Guides</TabsTrigger>
         </TabsList>
         
         <TabsContent value="categories">
           <CategoriesManager />
+        </TabsContent>
+        
+        <TabsContent value="subcategories">
+          <SubcategoriesManager />
         </TabsContent>
         
         <TabsContent value="guides">
@@ -391,6 +396,386 @@ function CategoriesManager() {
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleDeleteCategory(category.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubcategoriesManager() {
+  const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
+  
+  // Subcategory form state
+  const [formData, setFormData] = useState<Partial<InsertSubcategory>>({
+    id: '',
+    categoryId: '',
+    name: '',
+    description: '',
+    color: '',
+    order: 1
+  });
+  
+  // Fetch all categories for dropdown
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+  });
+  
+  // Fetch all subcategories
+  const { data: subcategories = [], isLoading } = useQuery<Subcategory[]>({
+    queryKey: ['/api/subcategories'],
+  });
+  
+  // Create subcategory mutation
+  const createSubcategory = useMutation({
+    mutationFn: async (subcategory: InsertSubcategory) => {
+      const response = await fetch('/api/subcategories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(subcategory),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create subcategory');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subcategories'] });
+      resetForm();
+      toast({
+        title: 'Success',
+        description: 'Subcategory created successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to create subcategory: ${error}`,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Update subcategory mutation
+  const updateSubcategory = useMutation({
+    mutationFn: async ({ id, subcategory }: { id: string; subcategory: InsertSubcategory }) => {
+      const response = await fetch(`/api/subcategories/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(subcategory),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update subcategory');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subcategories'] });
+      resetForm();
+      toast({
+        title: 'Success',
+        description: 'Subcategory updated successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to update subcategory: ${error}`,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Delete subcategory mutation
+  const deleteSubcategory = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/subcategories/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete subcategory');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subcategories'] });
+      toast({
+        title: 'Success',
+        description: 'Subcategory deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to delete subcategory: ${error}`,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Get category name by ID
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(c => c.id === categoryId);
+    return category ? category.name : categoryId;
+  };
+  
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: name === 'order' ? parseInt(value) || 1 : value 
+    }));
+  };
+  
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.id || !formData.categoryId || !formData.name) {
+      toast({
+        title: 'Validation Error',
+        description: 'ID, Category, and Name are required',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Convert to proper InsertSubcategory
+    const subcategoryData = formData as InsertSubcategory;
+    
+    if (editingSubcategory) {
+      updateSubcategory.mutate({ id: editingSubcategory.id, subcategory: subcategoryData });
+    } else {
+      createSubcategory.mutate(subcategoryData);
+    }
+  };
+  
+  // Reset form state
+  const resetForm = () => {
+    setFormData({
+      id: '',
+      categoryId: '',
+      name: '',
+      description: '',
+      color: '',
+      order: 1
+    });
+    setEditingSubcategory(null);
+    setIsAdding(false);
+  };
+  
+  // Set up edit mode
+  const handleEditSubcategory = (subcategory: Subcategory) => {
+    setEditingSubcategory(subcategory);
+    setFormData({
+      id: subcategory.id,
+      categoryId: subcategory.categoryId,
+      name: subcategory.name,
+      description: subcategory.description || '',
+      color: subcategory.color || '',
+      order: subcategory.order || 1
+    });
+    setIsAdding(true);
+  };
+  
+  // Handle subcategory deletion with confirmation
+  const handleDeleteSubcategory = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this subcategory? This will also update any guides using this subcategory.')) {
+      deleteSubcategory.mutate(id);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Subcategories</h2>
+        <Button 
+          onClick={() => setIsAdding(!isAdding)} 
+          variant={isAdding ? "secondary" : "default"}
+        >
+          {isAdding ? 'Cancel' : <><Plus className="mr-2 h-4 w-4" /> Add Subcategory</>}
+        </Button>
+      </div>
+      
+      {isAdding && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>{editingSubcategory ? 'Edit Subcategory' : 'Add New Subcategory'}</CardTitle>
+            <CardDescription>
+              {editingSubcategory 
+                ? 'Update the subcategory details below' 
+                : 'Fill in the details to create a new subcategory'
+              }
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="id" className="text-sm font-medium">ID (used in URLs, no spaces)</label>
+                  <Input 
+                    id="id" 
+                    name="id" 
+                    value={formData.id} 
+                    onChange={handleInputChange}
+                    placeholder="westfield-carousel"
+                    disabled={!!editingSubcategory}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="categoryId" className="text-sm font-medium">Parent Category</label>
+                  <select 
+                    id="categoryId" 
+                    name="categoryId" 
+                    value={formData.categoryId} 
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md"
+                  >
+                    <option value="">Select a category...</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">Name</label>
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange}
+                    placeholder="Westfield Carousel"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="order" className="text-sm font-medium">Display Order</label>
+                  <Input 
+                    id="order" 
+                    name="order" 
+                    type="number"
+                    value={formData.order?.toString() || "1"} 
+                    onChange={handleInputChange}
+                    min="1"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="description" className="text-sm font-medium">Description (Optional)</label>
+                <Textarea 
+                  id="description" 
+                  name="description" 
+                  value={formData.description} 
+                  onChange={handleInputChange}
+                  placeholder="Premium shopping destination in Perth"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="color" className="text-sm font-medium">Color (Optional)</label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="color" 
+                    name="color" 
+                    type="color"
+                    value={formData.color || '#cccccc'} 
+                    onChange={handleInputChange}
+                    className="w-12 h-10"
+                  />
+                  <Input 
+                    name="color" 
+                    value={formData.color} 
+                    onChange={handleInputChange}
+                    placeholder="#cccccc"
+                  />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
+              <Button 
+                type="submit" 
+                disabled={createSubcategory.isPending || updateSubcategory.isPending}
+              >
+                {(createSubcategory.isPending || updateSubcategory.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {editingSubcategory ? 'Update Subcategory' : 'Create Subcategory'}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      )}
+      
+      {isLoading || categoriesLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      ) : subcategories.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No subcategories found. Create your first subcategory!</p>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Parent Category</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Order</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subcategories.map((subcategory) => (
+                <TableRow key={subcategory.id}>
+                  <TableCell className="font-medium">{subcategory.id}</TableCell>
+                  <TableCell>{subcategory.name}</TableCell>
+                  <TableCell>{getCategoryName(subcategory.categoryId)}</TableCell>
+                  <TableCell className="max-w-xs truncate">{subcategory.description || '-'}</TableCell>
+                  <TableCell>{subcategory.order || 1}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEditSubcategory(subcategory)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDeleteSubcategory(subcategory.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
