@@ -48,7 +48,27 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarIcon, Loader2, Plus, Edit, Trash2, Search, Eye, MousePointer, Target, DollarSign } from 'lucide-react';
+import { 
+  CalendarIcon, 
+  Loader2, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Search, 
+  Eye, 
+  MousePointer, 
+  Target, 
+  DollarSign,
+  FolderOpen,
+  FileText,
+  Building,
+  TrendingUp,
+  Layers,
+  BarChart,
+  Settings,
+  ArrowLeft,
+  Grid3X3
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -1701,15 +1721,16 @@ function CategoriesManager() {
         </Card>
       )}
 
-      <div className="border rounded-md">
+      {/* Table Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-50 border-b border-gray-200">
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Color</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="font-semibold text-gray-700">Name</TableHead>
+              <TableHead className="font-semibold text-gray-700">ID</TableHead>
+              <TableHead className="font-semibold text-gray-700">Description</TableHead>
+              <TableHead className="font-semibold text-gray-700">Color</TableHead>
+              <TableHead className="font-semibold text-gray-700">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1725,13 +1746,15 @@ function CategoriesManager() {
               </TableRow>
             ) : (
               categories.map(category => (
-                <TableRow key={category.id}>
-                  <TableCell>{category.name}</TableCell>
-                  <TableCell>{category.id}</TableCell>
-                  <TableCell>{category.description}</TableCell>
+                <TableRow key={category.id} className="hover:bg-gray-50 transition-colors">
+                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="text-gray-600">
+                    <code className="px-2 py-1 bg-gray-100 rounded text-sm">{category.id}</code>
+                  </TableCell>
+                  <TableCell className="text-gray-600">{category.description}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded" style={{ backgroundColor: category.color }} />
+                      <div className="w-6 h-6 rounded-lg shadow-sm border border-gray-200" style={{ backgroundColor: category.color }} />
                       <span className="text-xs text-muted-foreground">{category.color}</span>
                     </div>
                   </TableCell>
@@ -1741,12 +1764,17 @@ function CategoriesManager() {
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleEditCategory(category)}
+                        className="hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
@@ -2646,20 +2674,126 @@ function GuidesManager() {
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('categories');
   const { toast } = useToast();
+  
+  // Quick stats
+  const { data: categories = [] } = useQuery<Category[]>({ queryKey: ['/api/categories'] });
+  const { data: guides = [] } = useQuery<Guide[]>({ queryKey: ['/api/guides'] });
+  const { data: businesses = [] } = useQuery<Business[]>({ queryKey: ['/api/businesses'] });
+  const { data: adCampaigns = [] } = useQuery<AdCampaign[]>({ queryKey: ['/api/ad-campaigns'] });
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="container py-8">
+        {/* Modern Header with Glass Effect */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-8 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">Manage your resort guide platform</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl px-6 py-3 border border-blue-100">
+                <div className="p-3 bg-blue-500 rounded-xl">
+                  <FolderOpen className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{categories.length}</p>
+                  <p className="text-xs text-gray-600">Categories</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl px-6 py-3 border border-purple-100">
+                <div className="p-3 bg-purple-500 rounded-xl">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{guides.length}</p>
+                  <p className="text-xs text-gray-600">Guides</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl px-6 py-3 border border-green-100">
+                <div className="p-3 bg-green-500 rounded-xl">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{businesses.length}</p>
+                  <p className="text-xs text-gray-600">Partners</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl px-6 py-3 border border-orange-100">
+                <div className="p-3 bg-orange-500 rounded-xl">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {adCampaigns.filter(c => c.status === 'active').length}
+                  </p>
+                  <p className="text-xs text-gray-600">Active Ads</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       
       <Tabs defaultValue="categories" onValueChange={setActiveTab}>
-        <TabsList className="mb-8 grid w-full grid-cols-7 lg:w-auto">
-          <TabsTrigger value="categories" data-testid="tab-categories">Categories</TabsTrigger>
-          <TabsTrigger value="subcategories" data-testid="tab-subcategories">Subcategories</TabsTrigger>
-          <TabsTrigger value="guides" data-testid="tab-guides">Guides</TabsTrigger>
-          <TabsTrigger value="partners" data-testid="tab-partners">Partners</TabsTrigger>
-          <TabsTrigger value="campaigns" data-testid="tab-campaigns">Ad Campaigns</TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="screensaver" data-testid="tab-screensaver">Screensaver</TabsTrigger>
+        <TabsList className="mb-8 grid w-full grid-cols-7 bg-white/80 backdrop-blur-xl p-2 rounded-xl shadow-lg border border-gray-100">
+          <TabsTrigger 
+            value="categories" 
+            data-testid="tab-categories"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Categories
+          </TabsTrigger>
+          <TabsTrigger 
+            value="subcategories" 
+            data-testid="tab-subcategories"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <Layers className="w-4 h-4 mr-2" />
+            Subcategories
+          </TabsTrigger>
+          <TabsTrigger 
+            value="guides" 
+            data-testid="tab-guides"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Guides
+          </TabsTrigger>
+          <TabsTrigger 
+            value="partners" 
+            data-testid="tab-partners"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <Building className="w-4 h-4 mr-2" />
+            Partners
+          </TabsTrigger>
+          <TabsTrigger 
+            value="campaigns" 
+            data-testid="tab-campaigns"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Campaigns
+          </TabsTrigger>
+          <TabsTrigger 
+            value="analytics" 
+            data-testid="tab-analytics"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <BarChart className="w-4 h-4 mr-2" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger 
+            value="screensaver" 
+            data-testid="tab-screensaver"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Screensaver
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="categories">
@@ -2690,6 +2824,7 @@ export default function AdminPanel() {
           <ScreensaverSettings />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
