@@ -1537,6 +1537,29 @@ function CategoriesManager() {
     },
   });
 
+  // Update category mutation
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, category }: { id: string; category: InsertCategory }) => {
+      const response = await apiRequest('PUT', `/api/categories/${id}`, category);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      resetForm();
+      toast({
+        title: 'Success',
+        description: 'Category updated successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update category',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Delete category mutation
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
@@ -1576,7 +1599,14 @@ function CategoriesManager() {
       });
       return;
     }
-    createCategory.mutate(formData as InsertCategory);
+    
+    const categoryData = formData as InsertCategory;
+    
+    if (editingCategory) {
+      updateCategory.mutate({ id: editingCategory.id, category: categoryData });
+    } else {
+      createCategory.mutate(categoryData);
+    }
   };
 
   // Reset form state
@@ -1592,6 +1622,19 @@ function CategoriesManager() {
     setIsAdding(false);
   };
 
+  // Set up edit mode
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setFormData({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      color: category.color,
+      imageUrl: category.imageUrl
+    });
+    setIsAdding(true);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -1604,15 +1647,26 @@ function CategoriesManager() {
       {isAdding && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Add New Category</CardTitle>
-            <CardDescription>Fill in the details to create a new category</CardDescription>
+            <CardTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</CardTitle>
+            <CardDescription>
+              {editingCategory 
+                ? 'Update the category details below' 
+                : 'Fill in the details to create a new category'}
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="id" className="text-sm font-medium">ID (used in URLs)</label>
-                  <Input id="id" name="id" value={formData.id} onChange={handleInputChange} placeholder="dining" />
+                  <Input 
+                    id="id" 
+                    name="id" 
+                    value={formData.id} 
+                    onChange={handleInputChange} 
+                    placeholder="dining" 
+                    disabled={!!editingCategory}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium">Name</label>
@@ -1636,7 +1690,12 @@ function CategoriesManager() {
             </CardContent>
             <CardFooter className="flex justify-end space-x-2">
               <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
-              <Button type="submit">{createCategory.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Create Category'}</Button>
+              <Button type="submit">
+                {(createCategory.isPending || updateCategory.isPending) ? 
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 
+                  editingCategory ? 'Update Category' : 'Create Category'
+                }
+              </Button>
             </CardFooter>
           </form>
         </Card>
@@ -1677,12 +1736,20 @@ function CategoriesManager() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </AlertDialogTrigger>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEditCategory(category)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Category</AlertDialogTitle>
@@ -1694,6 +1761,7 @@ function CategoriesManager() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

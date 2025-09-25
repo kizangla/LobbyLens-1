@@ -42,6 +42,7 @@ function Routes() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin-fixed" component={AdminPanel} />
       <Route path="/partner" component={PartnerPortal} />
       <Route component={NotFound} />
     </Switch>
