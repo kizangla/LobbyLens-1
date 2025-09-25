@@ -59,6 +59,12 @@ export function useQRTracking(
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sessionId = useRef(generateQRSessionId());
   const viewportPercentageRef = useRef(0);
+  
+  // Use refs to track visibility state to avoid infinite loops
+  const isVisibleRef = useRef(false);
+  const displayStartTimeRef = useRef<number | null>(null);
+  const hasTrackedImpressionRef = useRef(false);
+  const interactionCountRef = useRef(0);
 
   // Track QR analytics mutation
   const trackQRAnalytics = useMutation({
@@ -72,7 +78,7 @@ export function useQRTracking(
 
   // Track QR code impression
   const trackImpression = useCallback(() => {
-    if (!trackingState.hasTrackedImpression) {
+    if (!hasTrackedImpressionRef.current) {
       const now = Date.now();
       
       // Track impression event
@@ -84,6 +90,11 @@ export function useQRTracking(
         ...metadata
       });
 
+      // Update refs to avoid infinite loops
+      hasTrackedImpressionRef.current = true;
+      isVisibleRef.current = true;
+      displayStartTimeRef.current = now;
+
       setTrackingState(prev => ({
         ...prev,
         impressionTime: now,
@@ -92,13 +103,13 @@ export function useQRTracking(
         isVisible: true
       }));
     }
-  }, [entityType, entityId, trackEvent, metadata, trackingState.hasTrackedImpression]);
+  }, [entityType, entityId, trackEvent, metadata]);
 
   // Track QR code interaction (hover, click, etc.)
   const trackInteraction = useCallback((interactionType: 'hover' | 'click' | 'focus' | 'zoom') => {
     const now = Date.now();
-    const displayDuration = trackingState.displayStartTime 
-      ? now - trackingState.displayStartTime 
+    const displayDuration = displayStartTimeRef.current 
+      ? now - displayStartTimeRef.current 
       : 0;
 
     // Track interaction event
@@ -106,7 +117,7 @@ export function useQRTracking(
       interactionType,
       sessionId: sessionId.current,
       displayDuration,
-      interactionNumber: trackingState.interactionCount + 1,
+      interactionNumber: interactionCountRef.current + 1,
       deviceType: getDeviceType(),
       ...metadata
     });
@@ -119,6 +130,9 @@ export function useQRTracking(
       deviceType: getDeviceType()
     });
 
+    // Update refs
+    interactionCountRef.current = interactionCountRef.current + 1;
+
     setTrackingState(prev => ({
       ...prev,
       interactionCount: prev.interactionCount + 1,
@@ -126,25 +140,25 @@ export function useQRTracking(
     }));
 
     // Track high-probability scan events
-    if (scanProbability > 0.7 && trackingState.interactionCount === 0) {
+    if (scanProbability > 0.7 && interactionCountRef.current === 1) {
       trackEvent('qr_probable_scan', entityType, entityId, {
         probability: scanProbability,
         sessionId: sessionId.current,
         ...metadata
       });
     }
-  }, [entityType, entityId, trackEvent, metadata, trackingState]);
+  }, [entityType, entityId, trackEvent, metadata]);
 
   // Track when QR code leaves viewport
   const trackViewportExit = useCallback(() => {
-    if (trackingState.isVisible && trackingState.displayStartTime) {
-      const displayDuration = Date.now() - trackingState.displayStartTime;
+    if (isVisibleRef.current && displayStartTimeRef.current) {
+      const displayDuration = Date.now() - displayStartTimeRef.current;
       
       // Calculate final scan probability
       const scanProbability = estimateScanProbability({
         impressionDuration: displayDuration,
         viewportPercentage: viewportPercentageRef.current,
-        userInteraction: trackingState.interactionCount > 0,
+        userInteraction: interactionCountRef.current > 0,
         deviceType: getDeviceType()
       });
 
@@ -155,7 +169,7 @@ export function useQRTracking(
         entityId,
         impressionDuration: displayDuration,
         scanProbability,
-        interactionCount: trackingState.interactionCount,
+        interactionCount: interactionCountRef.current,
         viewportPercentage: viewportPercentageRef.current,
         deviceType: getDeviceType(),
         metadata
@@ -166,9 +180,13 @@ export function useQRTracking(
         sessionId: sessionId.current,
         displayDuration,
         scanProbability,
-        interactionCount: trackingState.interactionCount,
+        interactionCount: interactionCountRef.current,
         ...metadata
       });
+
+      // Update refs
+      isVisibleRef.current = false;
+      displayStartTimeRef.current = null;
 
       setTrackingState(prev => ({
         ...prev,
@@ -176,7 +194,7 @@ export function useQRTracking(
         displayStartTime: null
       }));
     }
-  }, [entityType, entityId, trackEvent, trackQRAnalytics, metadata, trackingState]);
+  }, [entityType, entityId, trackEvent, trackQRAnalytics, metadata]);
 
   // Set up intersection observer
   useEffect(() => {
@@ -190,7 +208,7 @@ export function useQRTracking(
           if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
             // QR code is more than 50% visible
             trackImpression();
-          } else if (!entry.isIntersecting && trackingState.isVisible) {
+          } else if (!entry.isIntersecting && isVisibleRef.current) {
             // QR code has left viewport
             trackViewportExit();
           }
@@ -207,12 +225,12 @@ export function useQRTracking(
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
-      // Track exit on unmount
-      if (trackingState.isVisible) {
+      // Track exit on unmount - use ref to avoid dependency
+      if (isVisibleRef.current) {
         trackViewportExit();
       }
     };
-  }, [trackImpression, trackViewportExit, trackingState.isVisible]);
+  }, [trackImpression, trackViewportExit]);
 
   // Generate QR code data with tracking
   const generateTrackedQRCode = useCallback((
