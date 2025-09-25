@@ -54,10 +54,70 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
   
   // If no sections or parsing failed, create a default text section
   if (sections.length === 0) {
-    sections = [{ 
+    // Check if the content mentions specific types of information
+    const content = guide.content || guide.excerpt;
+    const contentLower = content.toLowerCase();
+    
+    // Detect content types based on keywords
+    const detectedSections: ContentSection[] = [];
+    
+    // Always add main content as the first section
+    detectedSections.push({ 
+      id: 'overview', 
+      type: 'text', 
+      content: content, 
+      title: 'Overview' 
+    });
+    
+    // Detect contact information
+    if (contentLower.includes('phone') || contentLower.includes('email') || 
+        contentLower.includes('contact') || contentLower.includes('address')) {
+      detectedSections.push({
+        id: 'contact',
+        type: 'contact',
+        content: '',
+        title: 'Contact Information'
+      });
+    }
+    
+    // Detect dining/food content
+    if (contentLower.includes('restaurant') || contentLower.includes('dining') || 
+        contentLower.includes('food') || contentLower.includes('menu') || 
+        contentLower.includes('cuisine')) {
+      detectedSections.push({
+        id: 'dining',
+        type: 'menu',
+        content: '',
+        title: 'Dining Options'
+      });
+    }
+    
+    // Detect shopping content
+    if (contentLower.includes('shop') || contentLower.includes('store') || 
+        contentLower.includes('retail') || contentLower.includes('boutique')) {
+      detectedSections.push({
+        id: 'shopping',
+        type: 'text',
+        content: '',
+        title: 'Shopping Highlights'
+      });
+    }
+    
+    // Check for images in content
+    if (contentLower.includes('<img') || contentLower.includes('gallery') || 
+        contentLower.includes('photo')) {
+      detectedSections.push({
+        id: 'gallery',
+        type: 'image',
+        content: '',
+        title: 'Gallery'
+      });
+    }
+    
+    sections = detectedSections.length > 0 ? detectedSections : [{ 
       id: '1', 
       type: 'text', 
-      content: guide.content || guide.excerpt, 
+      content: content, 
       title: guide.title 
     }];
   }
@@ -78,14 +138,28 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
   });
   const qrValue = qrCodeData.shortUrl || qrCodeData.trackingUrl;
   
-  // Menu items (either from guide content or defaults)
-  const menuItems = [
-    { id: 'home', label: 'HOME' },
-    { id: 'about', label: 'ABOUT US' },
-    { id: 'food', label: 'FOOD' },
-    { id: 'drinks', label: 'WINE & DRINKS' },
-    { id: 'gallery', label: 'GALLERY' },
-  ];
+  // Dynamically generate menu items based on available sections
+  const menuItems = sections
+    .filter(section => section.title) // Only include sections with titles
+    .map(section => {
+      // Create user-friendly labels for menu items
+      let label = section.title || 'Section';
+      
+      // Format common section titles
+      if (section.title === 'Overview') label = 'OVERVIEW';
+      else if (section.title === 'Contact Information') label = 'CONTACT';
+      else if (section.title === 'Dining Options') label = 'DINING';
+      else if (section.title === 'Shopping Highlights') label = 'SHOPPING';
+      else if (section.title === 'Gallery') label = 'GALLERY';
+      else label = (section.title || 'Section').toUpperCase();
+      
+      return {
+        id: section.id,
+        label: label,
+        sectionIndex: sections.indexOf(section)
+      };
+    })
+    .slice(0, 6); // Limit to 6 menu items for UI consistency
   
   // Initialize tracking on mount
   useEffect(() => {
@@ -160,12 +234,23 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
     }
   }, [activeSection, sections, guide, trackEvent]);
   
-  // Track menu clicks
-  const handleMenuClick = useCallback((menuItem: { id: string; label: string }) => {
+  // Track menu clicks and navigate to section
+  const handleMenuClick = useCallback((menuItem: { id: string; label: string; sectionIndex?: number }) => {
+    // Navigate to the section if index is provided
+    if (typeof menuItem.sectionIndex === 'number') {
+      setActiveSection(menuItem.sectionIndex);
+      // Scroll to carousel section
+      const carousel = document.querySelector('.carousel-container');
+      if (carousel) {
+        carousel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    
     trackClick('menu_item', menuItem.id, {
       guideId: guide.id,
       guideTitle: guide.title,
-      menuLabel: menuItem.label
+      menuLabel: menuItem.label,
+      sectionIndex: menuItem.sectionIndex
     });
   }, [guide, trackClick]);
   
