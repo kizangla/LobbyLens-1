@@ -39,9 +39,14 @@ export function useAnalytics() {
     },
   });
 
-  // Track generic event
+  // Track generic event - TEMPORARILY DISABLED TO FIX INFINITE LOOP
   const trackEvent = useCallback(
     (eventType: string, entityType: string, entityId: string, metadata?: any) => {
+      // DISABLED: Analytics tracking was causing infinite loops
+      // TODO: Fix the underlying issue before re-enabling
+      return;
+      
+      /*
       trackMutation.mutate({
         eventType,
         entityType,
@@ -49,6 +54,7 @@ export function useAnalytics() {
         metadata,
         sessionId: sessionId.current,
       });
+      */
     },
     [trackMutation]
   );
@@ -98,8 +104,13 @@ export function useAnalytics() {
     }
   }, [trackEvent]);
 
-  // Start session on mount
+  // Start session on mount - TEMPORARILY DISABLED TO FIX INFINITE LOOP
   useEffect(() => {
+    // DISABLED: Session tracking was causing infinite loops
+    // TODO: Fix the underlying issue before re-enabling
+    return;
+    
+    /*
     trackSessionStart();
 
     // Track session end on unload
@@ -111,6 +122,7 @@ export function useAnalytics() {
     return () => {
       window.removeEventListener('beforeunload', handleUnload);
     };
+    */
   }, [trackSessionStart, trackSessionEnd]);
 
   return {

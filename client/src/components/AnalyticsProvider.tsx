@@ -77,8 +77,9 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   
-  // Process event queue
-  const processEventQueue = useCallback(() => {
+  // Process event queue - use useRef to avoid recreating function
+  const processEventQueueRef = useRef<() => void>();
+  processEventQueueRef.current = () => {
     if (eventQueue.current.length === 0) return;
     
     const events = eventQueue.current.splice(0, BATCH_SIZE);
@@ -104,26 +105,53 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     });
     
     // Save impressions after batch processing
-    saveImpressions();
-  }, [baseTrackEvent, baseTrackView, baseTrackClick, baseTrackImpression, saveImpressions]);
+    try {
+      const impressions = Array.from(trackedImpressions.current);
+      localStorage.setItem(IMPRESSIONS_STORAGE_KEY, JSON.stringify(impressions));
+    } catch (error) {
+      console.error('Failed to save tracked impressions:', error);
+    }
+  };
   
-  // Set up batch processing timer
+  // Stable processEventQueue function
+  const processEventQueue = useCallback(() => {
+    processEventQueueRef.current?.();
+  }, []);
+  
+  // Set up batch processing timer - TEMPORARILY DISABLED TO FIX INFINITE LOOP
   useEffect(() => {
-    batchTimer.current = setInterval(processEventQueue, BATCH_INTERVAL);
+    // DISABLED: The batch processing timer is causing infinite event loops
+    // TODO: Fix the underlying issue before re-enabling
+    return;
+    
+    /*
+    const timer = setInterval(() => {
+      processEventQueueRef.current?.();
+    }, BATCH_INTERVAL);
     
     return () => {
-      if (batchTimer.current) {
-        clearInterval(batchTimer.current);
-        // Process remaining events before unmounting
-        processEventQueue();
-      }
+      clearInterval(timer);
+      // Process remaining events before unmounting
+      processEventQueueRef.current?.();
     };
-  }, [processEventQueue]);
+    */
+  }, []); // Empty dependency array - only run once
   
-  // Queue an event
+  // Queue an event - use refs to avoid recreating function
+  const locationRef = useRef(location);
+  const sessionIdRef = useRef(sessionId);
+  const isAdminRouteRef = useRef(isAdminRoute);
+  
+  // Update refs when values change
+  useEffect(() => {
+    locationRef.current = location;
+    sessionIdRef.current = sessionId;
+    isAdminRouteRef.current = isAdminRoute;
+  }, [location, sessionId, isAdminRoute]);
+  
   const queueEvent = useCallback((eventType: string, entityType: string, entityId: string, metadata?: any) => {
     // Don't track admin panel events
-    if (isAdminRoute) return;
+    if (isAdminRouteRef.current) return;
     
     eventQueue.current.push({
       eventType,
@@ -132,17 +160,17 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       metadata: {
         ...metadata,
         timestamp: Date.now(),
-        pageUrl: location,
-        sessionId
+        pageUrl: locationRef.current,
+        sessionId: sessionIdRef.current
       },
       timestamp: Date.now()
     });
     
     // Process immediately if queue is full
     if (eventQueue.current.length >= BATCH_SIZE) {
-      processEventQueue();
+      processEventQueueRef.current?.();
     }
-  }, [location, sessionId, isAdminRoute, processEventQueue]);
+  }, []); // Empty dependencies - stable function
   
   // Enhanced tracking functions
   const trackEvent = useCallback((eventType: string, entityType: string, entityId: string, metadata?: any) => {
@@ -184,15 +212,23 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     });
   }, [queueEvent]);
   
-  // Track page views and time spent
+  // Track page views and time spent - TEMPORARILY DISABLED TO FIX INFINITE LOOP
+  // TODO: Fix the tracking logic to avoid infinite loops
   useEffect(() => {
+    // Temporarily disabled to fix infinite loop issue
+    // The tracking logic was causing React to continuously re-render
+    return;
+    
+    /*
     if (location !== currentPage.current) {
       // Track time spent on previous page
       const timeSpent = Date.now() - pageStartTime.current;
       if (currentPage.current && timeSpent > 1000) { // Only track if spent more than 1 second
-        trackEngagement('page', currentPage.current, timeSpent, {
+        queueEvent('engagement', 'page', currentPage.current, {
           page: currentPage.current,
-          exitPage: location
+          exitPage: location,
+          duration: timeSpent,
+          engagementLevel: timeSpent < 5000 ? 'low' : timeSpent < 30000 ? 'medium' : 'high'
         });
       }
       
@@ -201,13 +237,14 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       pageStartTime.current = Date.now();
       
       if (!isAdminRoute) {
-        trackView('page', location, {
+        queueEvent('view', 'page', location, {
           referrer: document.referrer,
           pageTitle: document.title
         });
       }
     }
-  }, [location, trackView, trackEngagement, isAdminRoute]);
+    */
+  }, [location, isAdminRoute, queueEvent]); // Reduced dependencies
   
   // Track session end
   useEffect(() => {
