@@ -40,10 +40,27 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
   const engagementTimerRef = useRef<EngagementTimer | null>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
   
-  // Parse guide content sections (assuming JSON string in guide.content)
-  const sections: ContentSection[] = guide.content 
-    ? JSON.parse(guide.content) 
-    : [{ id: '1', type: 'text', content: guide.excerpt, title: guide.title }];
+  // Parse guide content sections
+  let sections: ContentSection[] = [];
+  
+  try {
+    // Try to parse as JSON first (for guides with structured content)
+    if (guide.content && guide.content.trim().startsWith('[')) {
+      sections = JSON.parse(guide.content);
+    }
+  } catch (e) {
+    // Content is not JSON, treat it as plain HTML
+  }
+  
+  // If no sections or parsing failed, create a default text section
+  if (sections.length === 0) {
+    sections = [{ 
+      id: '1', 
+      type: 'text', 
+      content: guide.content || guide.excerpt, 
+      title: guide.title 
+    }];
+  }
   
   // Generate QR code URL with tracking parameters
   const baseUrl = `${window.location.origin}/guides/${guide.id}`;
