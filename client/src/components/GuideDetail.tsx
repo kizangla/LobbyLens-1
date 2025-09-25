@@ -39,7 +39,50 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
   const scrollDepthTrackerRef = useRef<ScrollDepthTracker | null>(null);
   const engagementTimerRef = useRef<EngagementTimer | null>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
+  const carouselApi = useRef<any>(null);
   
+  // Helper function to extract content between headers
+  const extractSectionContent = (html: string, sectionTitle: string): string => {
+    if (!html) return '';
+    
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Find all h3 elements
+    const headers = tempDiv.querySelectorAll('h3');
+    let sectionContent = '';
+    let capturing = false;
+    
+    for (let i = 0; i < headers.length; i++) {
+      const headerText = headers[i].textContent?.toLowerCase() || '';
+      const sectionTitleLower = sectionTitle.toLowerCase();
+      
+      // Check if this header matches our section
+      if (headerText.includes(sectionTitleLower) || 
+          (sectionTitleLower === 'shopping' && (headerText.includes('major stores') || headerText.includes('fashion'))) ||
+          (sectionTitleLower === 'dining' && (headerText.includes('restaurant') || headerText.includes('food') || headerText.includes('cafe')))) {
+        capturing = true;
+        let currentElement = headers[i] as HTMLElement;
+        const contentParts: string[] = [];
+        
+        // Include the header itself
+        contentParts.push(currentElement.outerHTML);
+        
+        // Get all siblings until the next h3 or end
+        let nextElement = currentElement.nextElementSibling;
+        while (nextElement && nextElement.tagName !== 'H3') {
+          contentParts.push((nextElement as HTMLElement).outerHTML);
+          nextElement = nextElement.nextElementSibling;
+        }
+        
+        sectionContent += contentParts.join('');
+      }
+    }
+    
+    return sectionContent || html; // Return full content if no specific section found
+  };
+
   // Parse guide content sections
   let sections: ContentSection[] = [];
   
@@ -52,66 +95,77 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
     // Content is not JSON, treat it as plain HTML
   }
   
-  // If no sections or parsing failed, create a default text section
+  // If no sections or parsing failed, parse HTML content
   if (sections.length === 0) {
-    // Check if the content mentions specific types of information
     const content = guide.content || guide.excerpt;
     const contentLower = content.toLowerCase();
     
-    // Detect content types based on keywords
+    // Detect content types and extract relevant sections
     const detectedSections: ContentSection[] = [];
     
-    // Always add main content as the first section
+    // Always add overview as the first section
+    const overviewContent = content.split('<h3>')[0] || content; // Get content before first h3
     detectedSections.push({ 
       id: 'overview', 
       type: 'text', 
-      content: content, 
+      content: overviewContent.trim() || content, 
       title: 'Overview' 
     });
     
-    // Detect contact information
-    if (contentLower.includes('phone') || contentLower.includes('email') || 
-        contentLower.includes('contact') || contentLower.includes('address')) {
-      detectedSections.push({
-        id: 'contact',
-        type: 'contact',
-        content: '',
-        title: 'Contact Information'
-      });
+    // Extract shopping content if present
+    if (contentLower.includes('major stores') || contentLower.includes('fashion') || 
+        contentLower.includes('shop') || contentLower.includes('retail')) {
+      const shoppingContent = extractSectionContent(content, 'shopping');
+      if (shoppingContent && shoppingContent !== content) {
+        detectedSections.push({
+          id: 'shopping',
+          type: 'text',
+          content: shoppingContent,
+          title: 'Shopping Highlights'
+        });
+      }
     }
     
-    // Detect dining/food content
+    // Extract dining content if present
     if (contentLower.includes('restaurant') || contentLower.includes('dining') || 
-        contentLower.includes('food') || contentLower.includes('menu') || 
-        contentLower.includes('cuisine')) {
-      detectedSections.push({
-        id: 'dining',
-        type: 'menu',
-        content: '',
-        title: 'Dining Options'
-      });
+        contentLower.includes('food') || contentLower.includes('cafe')) {
+      const diningContent = extractSectionContent(content, 'dining');
+      if (diningContent && diningContent !== content) {
+        detectedSections.push({
+          id: 'dining',
+          type: 'text',
+          content: diningContent,
+          title: 'Dining Options'
+        });
+      }
     }
     
-    // Detect shopping content
-    if (contentLower.includes('shop') || contentLower.includes('store') || 
-        contentLower.includes('retail') || contentLower.includes('boutique')) {
-      detectedSections.push({
-        id: 'shopping',
-        type: 'text',
-        content: '',
-        title: 'Shopping Highlights'
-      });
+    // Extract contact information if present
+    if (contentLower.includes('phone:') || contentLower.includes('email:') || 
+        contentLower.includes('address:') || contentLower.includes('contact')) {
+      const contactContent = extractSectionContent(content, 'contact');
+      if (contactContent && contactContent !== content) {
+        detectedSections.push({
+          id: 'contact',
+          type: 'contact',
+          content: contactContent,
+          title: 'Contact Information'
+        });
+      }
     }
     
-    // Check for images in content
-    if (contentLower.includes('<img') || contentLower.includes('gallery') || 
-        contentLower.includes('photo')) {
-      detectedSections.push({
-        id: 'gallery',
-        type: 'image',
-        content: '',
-        title: 'Gallery'
-      });
+    // Extract entertainment/facilities if present
+    if (contentLower.includes('entertainment') || contentLower.includes('facilities') || 
+        contentLower.includes('cinema') || contentLower.includes('parking')) {
+      const facilitiesContent = extractSectionContent(content, 'facilities');
+      if (facilitiesContent && facilitiesContent !== content) {
+        detectedSections.push({
+          id: 'facilities',
+          type: 'text',
+          content: facilitiesContent,
+          title: 'Facilities'
+        });
+      }
     }
     
     sections = detectedSections.length > 0 ? detectedSections : [{ 
@@ -237,7 +291,8 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
   // Track menu clicks and navigate to section
   const handleMenuClick = useCallback((menuItem: { id: string; label: string; sectionIndex?: number }) => {
     // Navigate to the section if index is provided
-    if (typeof menuItem.sectionIndex === 'number') {
+    if (typeof menuItem.sectionIndex === 'number' && carouselApi.current) {
+      carouselApi.current.scrollTo(menuItem.sectionIndex);
       setActiveSection(menuItem.sectionIndex);
       // Scroll to carousel section
       const carousel = document.querySelector('.carousel-container');
@@ -287,7 +342,18 @@ export default function GuideDetail({ guide, category, onBack }: GuideDetailProp
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left column: Content carousel */}
         <div className="carousel-container">
-          <Carousel className="w-full">
+          <Carousel 
+            className="w-full" 
+            setApi={(api) => {
+              if (api) {
+                carouselApi.current = api;
+                // Set up carousel API for programmatic navigation
+                api.on('select', () => {
+                  setActiveSection(api.selectedScrollSnap());
+                });
+              }
+            }}
+          >
             <CarouselContent>
               {sections.map((section, index) => (
                 <CarouselItem key={section.id}>
