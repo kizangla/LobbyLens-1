@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -37,7 +37,7 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-function Router() {
+function Routes() {
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -117,13 +117,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <AnalyticsProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-            <ScreensaverWrapper />
-          </TooltipProvider>
-        </AnalyticsProvider>
+        <WouterRouter>
+          <AnalyticsProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Routes />
+              <ScreensaverWrapper />
+            </TooltipProvider>
+          </AnalyticsProvider>
+        </WouterRouter>
       </AppProvider>
     </QueryClientProvider>
   );
