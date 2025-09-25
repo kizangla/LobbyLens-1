@@ -1776,6 +1776,7 @@ function CategoriesManager() {
 // Subcategories Manager Component
 function SubcategoriesManager() {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
   const { toast } = useToast();
 
   // Subcategory form state
@@ -1815,6 +1816,29 @@ function SubcategoriesManager() {
       toast({
         title: 'Error',
         description: 'Failed to create subcategory',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update subcategory mutation
+  const updateSubcategory = useMutation({
+    mutationFn: async ({ id, subcategory }: { id: string; subcategory: InsertSubcategory }) => {
+      const response = await apiRequest('PUT', `/api/subcategories/${id}`, subcategory);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subcategories'] });
+      resetForm();
+      toast({
+        title: 'Success',
+        description: 'Subcategory updated successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update subcategory',
         variant: 'destructive',
       });
     },
@@ -1868,7 +1892,14 @@ function SubcategoriesManager() {
       });
       return;
     }
-    createSubcategory.mutate(formData as InsertSubcategory);
+    
+    const subcategoryData = formData as InsertSubcategory;
+    
+    if (editingSubcategory) {
+      updateSubcategory.mutate({ id: editingSubcategory.id, subcategory: subcategoryData });
+    } else {
+      createSubcategory.mutate(subcategoryData);
+    }
   };
 
   // Reset form state
@@ -1881,7 +1912,22 @@ function SubcategoriesManager() {
       color: '#000000',
       order: 1
     });
+    setEditingSubcategory(null);
     setIsAdding(false);
+  };
+
+  // Set up edit mode
+  const handleEditSubcategory = (subcategory: Subcategory) => {
+    setEditingSubcategory(subcategory);
+    setFormData({
+      id: subcategory.id,
+      name: subcategory.name,
+      categoryId: subcategory.categoryId,
+      description: subcategory.description || '',
+      color: subcategory.color,
+      order: subcategory.order || 1
+    });
+    setIsAdding(true);
   };
 
   return (
@@ -1902,15 +1948,26 @@ function SubcategoriesManager() {
       {isAdding && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Add New Subcategory</CardTitle>
-            <CardDescription>Fill in the details to create a new subcategory</CardDescription>
+            <CardTitle>{editingSubcategory ? 'Edit Subcategory' : 'Add New Subcategory'}</CardTitle>
+            <CardDescription>
+              {editingSubcategory 
+                ? 'Update the subcategory details below' 
+                : 'Fill in the details to create a new subcategory'}
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="id" className="text-sm font-medium">ID (used in URLs)</label>
-                  <Input id="id" name="id" value={formData.id} onChange={handleInputChange} placeholder="fine-dining" />
+                  <Input 
+                    id="id" 
+                    name="id" 
+                    value={formData.id} 
+                    onChange={handleInputChange} 
+                    placeholder="fine-dining" 
+                    disabled={!!editingSubcategory}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="categoryId" className="text-sm font-medium">Category</label>
@@ -1947,7 +2004,12 @@ function SubcategoriesManager() {
             </CardContent>
             <CardFooter className="flex justify-end space-x-2">
               <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
-              <Button type="submit">{createSubcategory.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Create Subcategory'}</Button>
+              <Button type="submit">
+                {(createSubcategory.isPending || updateSubcategory.isPending) ? 
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 
+                  editingSubcategory ? 'Update Subcategory' : 'Create Subcategory'
+                }
+              </Button>
             </CardFooter>
           </form>
         </Card>
@@ -1985,7 +2047,15 @@ function SubcategoriesManager() {
                   <TableCell>{subcategory.description || '-'}</TableCell>
                   <TableCell>{subcategory.order || 1}</TableCell>
                   <TableCell>
-                    <AlertDialog>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEditSubcategory(subcategory)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon">
                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -2002,6 +2072,7 @@ function SubcategoriesManager() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
