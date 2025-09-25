@@ -355,47 +355,60 @@ function PartnersManager() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Business Partners</h2>
-        <Button 
-          onClick={() => setIsAdding(!isAdding)} 
-          variant={isAdding ? "secondary" : "default"}
-          data-testid="button-add-partner"
-        >
-          {isAdding ? 'Cancel' : <><Plus className="mr-2 h-4 w-4" /> Add Partner</>}
-        </Button>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Business Partners</h2>
+            <p className="text-sm text-gray-500 mt-1">Manage your business partnerships and advertisers</p>
+          </div>
+          <Button 
+            onClick={() => setIsAdding(!isAdding)} 
+            variant={isAdding ? "secondary" : "default"}
+            data-testid="button-add-partner"
+            className={!isAdding ? "bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-lg" : ""}
+          >
+            {isAdding ? 'Cancel' : <><Plus className="mr-2 h-4 w-4" /> Add Partner</>}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="flex gap-4 mb-6">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-            data-testid="input-search-partners"
-          />
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4">
+        <div className="flex gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              data-testid="input-search-partners"
+            />
+          </div>
+          <Select value={filterTier} onValueChange={setFilterTier}>
+            <SelectTrigger className="w-48 border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" data-testid="select-filter-tier">
+              <SelectValue placeholder="Filter by tier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              <SelectItem value="basic">Basic</SelectItem>
+              <SelectItem value="standard">Standard</SelectItem>
+              <SelectItem value="premium">Premium</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={filterTier} onValueChange={setFilterTier}>
-          <SelectTrigger className="w-48" data-testid="select-filter-tier">
-            <SelectValue placeholder="Filter by tier" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
-            <SelectItem value="basic">Basic</SelectItem>
-            <SelectItem value="standard">Standard</SelectItem>
-            <SelectItem value="premium">Premium</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
+      {/* Add/Edit Form */}
       {isAdding && (
-        <Card className="mb-8">
+        <Card className="mb-8 shadow-xl border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-1" />
           <CardHeader>
-            <CardTitle>{editingBusiness ? 'Edit Business Partner' : 'Add New Business Partner'}</CardTitle>
+            <CardTitle className="text-xl font-bold">
+              {editingBusiness ? 'Edit Business Partner' : 'Add New Business Partner'}
+            </CardTitle>
             <CardDescription>
               {editingBusiness 
                 ? 'Update the business partner details below' 
@@ -560,9 +573,21 @@ function PartnersManager() {
                 </label>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={resetForm} data-testid="button-cancel">Cancel</Button>
-              <Button type="submit" data-testid="button-save-partner">
+            <CardFooter className="flex justify-end space-x-2 bg-gray-50 border-t border-gray-200">
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={resetForm} 
+                data-testid="button-cancel"
+                className="hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                data-testid="button-save-partner"
+                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-md"
+              >
                 {createBusiness.isPending || updateBusiness.isPending ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                 ) : (
@@ -574,18 +599,19 @@ function PartnersManager() {
         </Card>
       )}
 
-      <div className="border rounded-md">
+      {/* Table Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-50 border-b border-gray-200">
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Tier</TableHead>
-              <TableHead>Guides</TableHead>
-              <TableHead>Campaigns</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="font-semibold text-gray-700">Name</TableHead>
+              <TableHead className="font-semibold text-gray-700">Email</TableHead>
+              <TableHead className="font-semibold text-gray-700">Phone</TableHead>
+              <TableHead className="font-semibold text-gray-700">Tier</TableHead>
+              <TableHead className="font-semibold text-gray-700">Guides</TableHead>
+              <TableHead className="font-semibold text-gray-700">Campaigns</TableHead>
+              <TableHead className="font-semibold text-gray-700">Status</TableHead>
+              <TableHead className="font-semibold text-gray-700">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -605,7 +631,7 @@ function PartnersManager() {
               filteredBusinesses.map(business => {
                 const counts = getBusinessCounts(business.id);
                 return (
-                  <TableRow key={business.id}>
+                  <TableRow key={business.id} className="hover:bg-gray-50 transition-colors">
                     <TableCell data-testid={`text-partner-name-${business.id}`}>
                       <div>
                         <p className="font-medium">{business.name}</p>
@@ -635,6 +661,7 @@ function PartnersManager() {
                           size="icon"
                           onClick={() => handleEditBusiness(business)}
                           data-testid={`button-edit-${business.id}`}
+                          className="hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -644,6 +671,7 @@ function PartnersManager() {
                               variant="ghost" 
                               size="icon"
                               data-testid={`button-delete-${business.id}`}
+                              className="hover:bg-red-50 hover:text-red-600 transition-colors"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
