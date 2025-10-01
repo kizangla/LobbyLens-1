@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Category, Guide } from '@/lib/types';
 
@@ -13,13 +13,23 @@ export default function useSubcategoryNavigation() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Fetch all categories
-  const { 
-    data: categories = [], 
-    isLoading: categoriesLoading 
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError
   } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
   });
-  
+
+  // Log fetch status for debugging
+  useEffect(() => {
+    console.log('Categories loading:', categoriesLoading);
+    console.log('Categories count:', categories.length);
+    if (categoriesError) {
+      console.error('Error fetching categories:', categoriesError);
+    }
+  }, [categoriesLoading, categories, categoriesError]);
+
   // Fetch guides for the selected category
   const {
     data: guides = [],
