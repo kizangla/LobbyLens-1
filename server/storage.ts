@@ -110,7 +110,14 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllCategories(): Promise<Category[]> {
-    return await db.select().from(categories);
+    try {
+      const result = await db.select().from(categories);
+      console.log(`Successfully fetched ${result.length} categories from database`);
+      return result;
+    } catch (error) {
+      console.error('Database error in getAllCategories:', error);
+      throw error;
+    }
   }
   
   async getCategoryById(id: string): Promise<Category | undefined> {
