@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -39,9 +40,9 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Initialize the database with seed data
-    await storage.seedDatabase();
-    
+    // Note: Database seeding temporarily disabled for initial setup
+    // await storage.seedDatabase();
+
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
